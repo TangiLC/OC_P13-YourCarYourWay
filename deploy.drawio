@@ -24,9 +24,6 @@
         <mxCell id="m8dlrcQLnKcXfo8TvbvZ-39" value="&amp;lt;&amp;lt;database&amp;gt;&amp;gt;&lt;br&gt;&lt;div&gt;Base de Données &lt;br&gt;&lt;/div&gt;" style="shape=cylinder;whiteSpace=wrap;html=1;fillColor=#f0f4c3;verticalAlign=top;" vertex="1" parent="1">
           <mxGeometry x="580" y="280" width="200" height="200" as="geometry" />
         </mxCell>
-        <mxCell id="m8dlrcQLnKcXfo8TvbvZ-55" value="&lt;div align=&quot;center&quot;&gt;&amp;lt;&amp;lt;executionEnvironment&amp;gt;&amp;gt;&lt;/div&gt;&lt;div align=&quot;center&quot;&gt;Docker&lt;/div&gt;" style="verticalAlign=top;align=center;spacingTop=8;spacingLeft=2;spacingRight=12;shape=cube;size=10;direction=south;fontStyle=0;html=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
-          <mxGeometry x="330" y="340" width="180" height="120" as="geometry" />
-        </mxCell>
         <mxCell id="m8dlrcQLnKcXfo8TvbvZ-40" value="&amp;lt;&amp;lt;device&amp;gt;&amp;gt;&lt;br&gt;&lt;div&gt;RabbitMQ&lt;/div&gt;&lt;div&gt;&amp;nbsp;(WebSocket Broker)&lt;/div&gt;" style="shape=cube;whiteSpace=wrap;html=1;fillColor=#ffe0b2" vertex="1" parent="1">
           <mxGeometry x="580" y="40" width="200" height="120" as="geometry" />
         </mxCell>
@@ -57,7 +54,7 @@
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="m8dlrcQLnKcXfo8TvbvZ-45" style="endArrow=block;html=1;dashed=1;" edge="1" parent="1" source="m8dlrcQLnKcXfo8TvbvZ-38" target="m8dlrcQLnKcXfo8TvbvZ-40">
+        <mxCell id="m8dlrcQLnKcXfo8TvbvZ-45" style="endArrow=block;html=1;dashed=1;startArrow=classic;startFill=1;" edge="1" parent="1" source="m8dlrcQLnKcXfo8TvbvZ-38" target="m8dlrcQLnKcXfo8TvbvZ-40">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="m8dlrcQLnKcXfo8TvbvZ-49" value="websocket" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="m8dlrcQLnKcXfo8TvbvZ-45">
@@ -73,17 +70,20 @@
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="m8dlrcQLnKcXfo8TvbvZ-54" value="&lt;div align=&quot;center&quot;&gt;&amp;lt;&amp;lt;executionEnvironment&amp;gt;&amp;gt;&lt;/div&gt;&lt;div align=&quot;center&quot;&gt;Docker&lt;/div&gt;" style="verticalAlign=top;align=center;spacingTop=8;spacingLeft=2;spacingRight=12;shape=cube;size=10;direction=south;fontStyle=4;html=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+        <mxCell id="m8dlrcQLnKcXfo8TvbvZ-54" value="&lt;div align=&quot;center&quot;&gt;&amp;lt;&amp;lt;executionEnvironment&amp;gt;&amp;gt;&lt;/div&gt;&lt;div align=&quot;center&quot;&gt;Docker&lt;/div&gt;" style="verticalAlign=top;align=center;spacingTop=8;spacingLeft=2;spacingRight=12;shape=cube;size=10;direction=east;fontStyle=0;html=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
           <mxGeometry x="330" y="90" width="180" height="120" as="geometry" />
         </mxCell>
         <mxCell id="m8dlrcQLnKcXfo8TvbvZ-47" value="&lt;div&gt;&amp;lt;&amp;lt;artifact&amp;gt;&amp;gt;&lt;/div&gt;&lt;div&gt;Angular&lt;/div&gt;&lt;div&gt;interface&lt;/div&gt;" style="shape=module;align=left;spacingLeft=20;align=center;verticalAlign=top;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
           <mxGeometry x="339" y="140" width="150" height="60" as="geometry" />
         </mxCell>
+        <mxCell id="m8dlrcQLnKcXfo8TvbvZ-58" value="&lt;div align=&quot;center&quot;&gt;&amp;lt;&amp;lt;executionEnvironment&amp;gt;&amp;gt;&lt;/div&gt;&lt;div align=&quot;center&quot;&gt;Docker&lt;/div&gt;" style="verticalAlign=top;align=center;spacingTop=8;spacingLeft=2;spacingRight=12;shape=cube;size=10;direction=east;fontStyle=0;html=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="330" y="340" width="180" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="m8dlrcQLnKcXfo8TvbvZ-59" value="&lt;div align=&quot;center&quot;&gt;&amp;lt;&amp;lt;executionEnvironment&amp;gt;&amp;gt;&lt;/div&gt;&lt;div align=&quot;center&quot;&gt;Docker&lt;/div&gt;" style="verticalAlign=top;align=center;spacingTop=8;spacingLeft=2;spacingRight=12;shape=cube;size=10;direction=east;fontStyle=0;html=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="600" y="360" width="150" height="110" as="geometry" />
+        </mxCell>
         <mxCell id="m8dlrcQLnKcXfo8TvbvZ-48" value="&lt;div&gt;&amp;lt;&amp;lt;artifact&amp;gt;&amp;gt;&lt;/div&gt;&lt;div&gt;Spring-boot&lt;/div&gt;&lt;div&gt;application&lt;/div&gt;" style="shape=module;align=left;spacingLeft=20;align=center;verticalAlign=top;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
           <mxGeometry x="339" y="390" width="150" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="m8dlrcQLnKcXfo8TvbvZ-56" value="&lt;div align=&quot;center&quot;&gt;&amp;lt;&amp;lt;executionEnvironment&amp;gt;&amp;gt;&lt;/div&gt;&lt;div align=&quot;center&quot;&gt;Docker&lt;/div&gt;" style="verticalAlign=top;align=center;spacingTop=8;spacingLeft=2;spacingRight=12;shape=cube;size=10;direction=south;fontStyle=0;html=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
-          <mxGeometry x="610" y="350" width="140" height="120" as="geometry" />
         </mxCell>
         <mxCell id="m8dlrcQLnKcXfo8TvbvZ-57" value="&lt;div&gt;&amp;lt;&amp;lt;artifact&amp;gt;&amp;gt;&lt;/div&gt;mySQL" style="shape=module;align=left;spacingLeft=20;align=center;verticalAlign=top;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
           <mxGeometry x="610" y="400" width="130" height="60" as="geometry" />
