@@ -42,11 +42,11 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
-		<!-- Data REST -->
+		<!-- Data REST 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-rest</artifactId>
-		</dependency>
+		</dependency>-->
 		<!-- Security -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
