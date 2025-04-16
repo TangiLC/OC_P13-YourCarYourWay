@@ -1,0 +1,16 @@
+# Node & Java build artifacts
+**/node_modules/
+**/dist/
+**/target/
+
+# IDE config files
+**/.vscode/
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+
+# Env files
+**/.env
+**/*.env
+**/application-secrets.properties

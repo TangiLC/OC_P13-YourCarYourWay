@@ -1,0 +1,20 @@
+# Maven or Gradle
+target/
+build/
+
+# IDEs
+.vscode/
+
+# Logs & temp
+*.log
+*.tmp
+
+# Secrets (fichier de conf locaux)
+**/application-secrets.properties
+.env
+
+# OS
+.DS_Store
+
+# Test coverage
+coverage/

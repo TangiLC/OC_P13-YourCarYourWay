@@ -1,0 +1,23 @@
+# Node
+node_modules/
+dist/
+npm-debug.log*
+
+# Angular cache
+.angular/
+
+# Env
+.env
+
+# IDEs
+.vscode/
+
+# OS
+.DS_Store
+
+# Build output
+dist/
+build/
+
+# Test coverage
+coverage/
