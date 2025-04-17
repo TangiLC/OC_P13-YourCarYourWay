@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>WebSocket Chat Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+</head>
+
+<body>
+    <h2>WebSocket Chat Test</h2>
+
+    <label for="jwt">JWT Token :</label><br />
+    <textarea id="jwt" rows="4" cols="80" placeholder="Collez votre JWT ici"></textarea><br /><br />
+
+    <button onclick="connect()">Se connecter</button>
+
+    <hr />
+
+    <label for="message">Message :</label><br />
+    <input type="text" id="message" placeholder="Tapez un message..." size="50" />
+    <button onclick="sendMessage()">Envoyer</button>
+
+    <h3>Messages reçus :</h3>
+    <ul id="messages"></ul>
+
+    <script>
+        let stompClient = null;
+
+        function connect() {
+            const socket = new SockJS("http://localhost:8080/ws");
+            stompClient = Stomp.over(socket);
+            stompClient.heartbeat.outgoing = 0;
+            stompClient.heartbeat.incoming = 0;
+            const token = document.getElementById("jwt").value.trim();
+
+            stompClient.connect(
+                { Authorization: "Bearer " + token },
+                function (frame) {
+                    console.log("✅ Connecté : ", frame);
+                    console.log("Connecté au serveur : " + (frame.headers?.server || "inconnu"));
+                    stompClient.subscribe("/topic/public", function (message) {
+                        try {
+                            const msg = JSON.parse(message.body);
+                            displayMessage(msg.sender + " : " + msg.content);
+                        } catch (e) {
+                            console.error("Erreur de parsing:", e);
+                            displayMessage("Message reçu (non-JSON): " + message.body);
+                        }
+                    });
+                },
+                function (error) {
+                    console.error("Erreur WebSocket : ", error);
+                    alert("Échec de la connexion WebSocket. Vérifiez le JWT.");
+                }
+            );
+        }
+
+        function sendMessage() {
+            const messageContent = document.getElementById("message").value.trim();
+            if (messageContent && stompClient) {
+                stompClient.send("/app/chat.sendMessage", {}, JSON.stringify({
+                    content: messageContent,
+                    type: "CHAT"
+                }));
+                document.getElementById("message").value = "";
+            }
+        }
+
+        function displayMessage(text) {
+            const li = document.createElement("li");
+            li.textContent = text;
+            document.getElementById("messages").appendChild(li);
+        }
+    </script>
+</body>
+
+</html>

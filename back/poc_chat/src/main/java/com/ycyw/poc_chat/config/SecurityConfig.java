@@ -1,5 +1,6 @@
 package com.ycyw.poc_chat.config;
 
+import com.ycyw.poc_chat.security.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
@@ -12,8 +13,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
-import com.ycyw.poc_chat.security.JwtAuthenticationFilter;
 
 /**
  * Configuration de la sécurité HTTP et JWT.
@@ -61,7 +60,13 @@ public class SecurityConfig {
       )
       .authorizeHttpRequests(auth ->
         auth
-          .requestMatchers("/auth/**", "/swagger-ui/**", "/v3/api-docs/**")
+          .requestMatchers(
+            "/auth/**",
+            "/swagger-ui/**",
+            "/v3/api-docs/**",
+            "/ws/**",
+            "/ws/info/**"
+          )
           .permitAll()
           .anyRequest()
           .authenticated()

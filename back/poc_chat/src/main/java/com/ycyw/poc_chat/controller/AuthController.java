@@ -1,5 +1,16 @@
 package com.ycyw.poc_chat.controller;
 
+import com.ycyw.poc_chat.dto.JwtResponse;
+import com.ycyw.poc_chat.dto.LoginRequest;
+import com.ycyw.poc_chat.dto.RegisterRequest;
+import com.ycyw.poc_chat.model.Role;
+import com.ycyw.poc_chat.model.UserCredential;
+import com.ycyw.poc_chat.repository.UserCredentialRepository;
+import com.ycyw.poc_chat.security.JwtTokenProvider;
+import com.ycyw.poc_chat.security.UserPrincipal;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -11,19 +22,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.ycyw.poc_chat.dto.JwtResponse;
-import com.ycyw.poc_chat.dto.LoginRequest;
-import com.ycyw.poc_chat.dto.RegisterRequest;
-import com.ycyw.poc_chat.model.Role;
-import com.ycyw.poc_chat.model.UserCredential;
-import com.ycyw.poc_chat.repository.UserCredentialRepository;
-import com.ycyw.poc_chat.security.JwtTokenProvider;
-import com.ycyw.poc_chat.security.UserPrincipal;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import jakarta.validation.Valid;
 
 /**
  * Contrôleur pour gérer l'inscription et la connexion JWT.
@@ -128,7 +126,11 @@ public class AuthController {
       String roleName = authority.replace("ROLE_", "");
 
       Role roleEnum = Role.valueOf(roleName);
-      String token = tokenProvider.generateToken(principal.getId(), roleEnum);
+      String token = tokenProvider.generateToken(
+        principal.getId(),
+        principal.getUsername(),
+        roleEnum
+      );
 
       JwtResponse resp = new JwtResponse(
         token,

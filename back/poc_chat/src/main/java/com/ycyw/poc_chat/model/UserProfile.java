@@ -9,8 +9,11 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -50,4 +53,8 @@ public class UserProfile {
 
   @Enumerated(EnumType.STRING)
   private ProfileType type;
+
+  @ManyToMany(mappedBy = "participants")
+  @Builder.Default
+  private Set<Dialog> dialogs = new HashSet<>();
 }

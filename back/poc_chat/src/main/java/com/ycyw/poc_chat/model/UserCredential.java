@@ -37,4 +37,6 @@ public class UserCredential {
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   private Role role;
+
+  
 }
