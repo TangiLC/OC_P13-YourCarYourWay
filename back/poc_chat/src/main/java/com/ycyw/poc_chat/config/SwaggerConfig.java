@@ -14,12 +14,12 @@ import io.swagger.v3.oas.annotations.security.SecurityScheme;
     title = "You Car Your Way",
     version = "v1",
     description = """
-   🚙🚗**API de location de voiture**\n
-   Ce PoC est centré sur la fonction Chat 💬\n
-   *(WebSocket -STOMP - RabbitMQ)*
+        🚙🚗**API de location de voiture**\n
+        Ce PoC est centré sur la fonction Chat 💬\n
+        *(WebSocket -STOMP - RabbitMQ)*
            
-    Pour plus d’infos, consultez la doc technique
-           """
+        Pour plus d’infos, consultez la doc technique
+        """
   ),
   security = @SecurityRequirement(name = "bearerAuth")
 )
