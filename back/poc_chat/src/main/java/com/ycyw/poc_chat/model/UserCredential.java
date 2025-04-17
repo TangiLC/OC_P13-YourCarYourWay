@@ -24,28 +24,16 @@ import lombok.NoArgsConstructor;
 @Builder
 public class UserCredential {
 
-  /**
-   * Identifiant unique, auto-incrémenté.
-   */
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  /**
-   * Email utilisé comme identifiant de connexion.
-   */
   @Column(nullable = false, unique = true)
   private String email;
 
-  /**
-   * Mot de passe haché (BCrypt).
-   */
   @Column(nullable = false)
   private String password;
 
-  /**
-   * Rôle de l'utilisateur (USER, AGENT, ADMIN).
-   */
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   private Role role;
