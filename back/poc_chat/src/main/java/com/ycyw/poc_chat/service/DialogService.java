@@ -133,4 +133,27 @@ public class DialogService {
       .build();
     return messageRepository.save(response);
   }
+
+  /**
+   * Ferme un dialogue existant.
+   *
+   * @param dialogId identifiant du dialogue à fermer
+   * @return le dialogue fermé
+   * @throws RuntimeException si le dialogue n'existe pas
+   */
+  @Transactional
+  public Dialog closeDialog(Long dialogId) {
+    Dialog dialog = dialogRepository
+      .findById(dialogId)
+      .orElseThrow(() -> new RuntimeException("Dialog not found"));
+
+    if (dialog.getStatus() == DialogStatus.CLOSED) {
+      throw new RuntimeException("Dialog already closed");
+    }
+
+    dialog.setStatus(DialogStatus.CLOSED);
+    dialog.setClosedAt(LocalDateTime.now());
+
+    return dialogRepository.save(dialog);
+  }
 }

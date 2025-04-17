@@ -1,7 +1,6 @@
 package com.ycyw.poc_chat.security;
 
-//import com.ycyw.poc_chat.security.JwtService;
-import com.ycyw.poc_chat.security.UserPrincipal;
+import java.util.List;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
@@ -9,17 +8,23 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
+/**
+ * Intercepteur STOMP qui valide le token JWT lors de la commande CONNECT
+ * et place l'objet Authentication dans le contexte du message.
+ */
 @Component
 public class WebSocketAuthInterceptor implements ChannelInterceptor {
 
-  private final JwtTokenProvider jwtService;
+  private final JwtTokenProvider jwtTokenProvider;
 
-  public WebSocketAuthInterceptor(JwtTokenProvider jwtService) {
-    this.jwtService = jwtService;
+  public WebSocketAuthInterceptor(JwtTokenProvider jwtTokenProvider) {
+    this.jwtTokenProvider = jwtTokenProvider;
   }
 
+  @SuppressWarnings("null")
   @Override
   public Message<?> preSend(Message<?> message, MessageChannel channel) {
     StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(
@@ -30,23 +35,24 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
     if (
       accessor != null && StompCommand.CONNECT.equals(accessor.getCommand())
     ) {
-      String authorization = accessor.getFirstNativeHeader("Authorization");
-
-      if (authorization != null && authorization.startsWith("Bearer ")) {
-        String token = authorization.substring(7);
-
-        try {
-          UserPrincipal user = jwtService.getUserPrincipal(token);
-          UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-            user,
-            null,
-            user.getAuthorities()
-          );
-
-          accessor.setUser(auth);
-          accessor.getSessionAttributes().put("user", user);
-        } catch (Exception e) {
-          // Token invalide, l'utilisateur ne sera pas authentifié
+      List<String> authHeaders = accessor.getNativeHeader("Authorization");
+      if (authHeaders != null && !authHeaders.isEmpty()) {
+        String bearer = authHeaders.get(0);
+        if (bearer.startsWith("Bearer ")) {
+          String token = bearer.substring(7);
+          try {
+            if (jwtTokenProvider.validateToken(token)) {
+              UserPrincipal user = jwtTokenProvider.getUserPrincipal(token);
+              Authentication auth = new UsernamePasswordAuthenticationToken(
+                user,
+                null,
+                user.getAuthorities()
+              );
+              accessor.setUser(auth);
+            }
+          } catch (Exception ex) {
+            // Optionnel : log.error("JWT validation failed", ex);
+          }
         }
       }
     }

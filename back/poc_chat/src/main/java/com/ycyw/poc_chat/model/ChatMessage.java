@@ -8,7 +8,7 @@ import lombok.*;
  * Entité représentant un message échangé dans un dialogue.
  */
 @Entity
-@Table(name = "chat_message")
+@Table(name = "messages")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
