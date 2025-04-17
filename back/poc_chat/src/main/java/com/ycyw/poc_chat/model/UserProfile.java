@@ -1,9 +1,6 @@
 package com.ycyw.poc_chat.model;
 
-import java.time.LocalDateTime;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -40,13 +37,17 @@ public class UserProfile {
   @JsonIgnore
   private UserCredential userCredential;
 
+  /* futur dev : 1 credential to many profile
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "user_id", nullable = false)
+  @JsonIgnore
+  private UserCredential userCredential;
+*/
+
   private String firstName;
   private String lastName;
   private String company;
 
   @Enumerated(EnumType.STRING)
   private ProfileType type;
-
-  private LocalDateTime createdAt;
-
 }
