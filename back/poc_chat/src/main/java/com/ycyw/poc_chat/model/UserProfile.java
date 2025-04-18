@@ -12,6 +12,10 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIdentityInfo(
+  generator = ObjectIdGenerators.PropertyGenerator.class,
+  property = "id"
+)
 public class UserProfile {
 
   @Id
@@ -31,7 +35,6 @@ public class UserProfile {
   private ProfileType type;
 
   @ManyToMany(mappedBy = "participants")
-  @JsonIgnoreProperties({ "participants" }) // Évite la boucle infinie
-  @Builder.Default
+  @JsonBackReference
   private Set<Dialog> dialogs = new HashSet<>();
 }

@@ -3,17 +3,18 @@ package com.ycyw.poc_chat.service;
 import com.ycyw.poc_chat.model.*;
 import com.ycyw.poc_chat.repository.*;
 import com.ycyw.poc_chat.security.UserPrincipal;
+import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Service métier pour la gestion des dialogues et des messages associés.
- */
 @Service
 @RequiredArgsConstructor
 public class DialogService {
@@ -21,125 +22,102 @@ public class DialogService {
   private final DialogRepository dialogRepository;
   private final UserProfileRepository userProfileRepository;
   private final ChatMessageRepository messageRepository;
+  private final SimpMessagingTemplate messagingTemplate;
 
   /**
-   * Crée un dialogue (si inexistant), associe l'utilisateur, enregistre le message.
+   * Crée un nouveau dialogue pour un utilisateur donné.
    *
-   * @param userId     identifiant du UserProfile émetteur
-   * @param content    contenu du message
-   * @param topic      titre du dialogue, vérification de l'unicité et non-nullité
-   *                   //topic null en cas de chat en cours
-   * @return le message sauvegardé
+   * @param userProfileId ID du profil utilisateur
+   * @return le dialogue créé
    */
   @Transactional
-  public ChatMessage createDialogAndSendMessage(Long userId, String content) {
-    return createDialogAndSendMessage(userId, content, null);
+  public Dialog createDialog(String topic) {
+    Authentication auth = SecurityContextHolder
+      .getContext()
+      .getAuthentication();
+    UserPrincipal requester = (UserPrincipal) auth.getPrincipal();
+
+    String finalTopic = (topic == null || topic.isBlank())
+      ? "Chat_" +
+      LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))
+      : topic;
+
+    Dialog dialog = Dialog
+      .builder()
+      .topic(finalTopic)
+      .status(DialogStatus.PENDING)
+      .createdAt(LocalDateTime.now())
+      .build();
+
+    UserProfile clientProfile = UserProfile
+      .builder()
+      .id(requester.getId())
+      .build();
+    dialog.getParticipants().add(clientProfile);
+
+    return dialogRepository.save(dialog);
   }
 
+  /**
+   * Envoie un message dans un dialogue existant.
+   *
+   * @param dialogId ID du dialogue
+   * @param senderId ID de l'utilisateur expéditeur
+   * @param content  contenu du message
+   * @return le message enregistré
+   */
   @Transactional
-  public ChatMessage createDialogAndSendMessage(
-    Long userId,
-    String content,
-    String topic
-  ) {
-    UserProfile user = userProfileRepository
-      .findById(userId)
-      .orElseThrow(() -> new RuntimeException("User not found"));
-    // Cherche un dialogue ouvert sans agent encore lié
-    Optional<Dialog> existing = dialogRepository.findFirstByParticipantsContainingAndStatus(
-      user,
-      DialogStatus.OPEN
-    );
-    Dialog dialog = existing.orElseGet(() -> {
-      DateTimeFormatter formatter = DateTimeFormatter.ofPattern(
-        "yyyy-MM-dd HH:mm:ss"
-      );
-      String timestamp = LocalDateTime.now().format(formatter);
-      String finalTopic = topic;
-      if (topic == null || topic.trim().isEmpty()) {
-        finalTopic = "New Messages_" + timestamp;
-      } else {
-        List<Dialog> userDialogs = dialogRepository.findByParticipantsContainingOrderByCreatedAtDesc(
-          user
-        );
-        boolean topicExists = userDialogs
-          .stream()
-          .anyMatch(d -> topic.equals(d.getTopic()));
-        if (topicExists) {
-          finalTopic = topic + " (" + timestamp + ")";
-        }
+  public ChatMessage sendMessage(Long dialogId, Long senderId, String content) {
+    Authentication auth = SecurityContextHolder
+      .getContext()
+      .getAuthentication();
+    UserPrincipal requester = (UserPrincipal) auth.getPrincipal();
+    UserProfile senderProfile;
+    Dialog dialog = dialogRepository
+      .findById(dialogId)
+      .orElseThrow(() -> new RuntimeException("Dialog not found"));
+
+    if (requester.isClient()) {
+      if (!requester.getId().equals(senderId)) {
+        throw new AccessDeniedException("User and sender id mismatch!");
       }
-      Dialog newDialog = Dialog
-        .builder()
-        .createdAt(LocalDateTime.now())
-        .status(DialogStatus.OPEN)
-        .topic(finalTopic)
-        .build();
-      newDialog.getParticipants().add(user);
-      return dialogRepository.save(newDialog);
-    });
+      if (dialog.getStatus() == DialogStatus.CLOSED) {
+        dialog.setStatus(DialogStatus.PENDING);
+        dialog.setClosedAt(null);
+      }
+
+      senderProfile = UserProfile.builder().id(senderId).build();
+    } else {
+      senderProfile = userProfileRepository.getReferenceById(senderId);
+
+      if (dialog.getStatus() == DialogStatus.PENDING) {
+        dialog.setStatus(DialogStatus.OPEN);
+      }
+    }
+
+    if (
+      dialog
+        .getParticipants()
+        .stream()
+        .noneMatch(p -> p.getId().equals(senderId))
+    ) {
+      dialog.getParticipants().add(senderProfile);
+    }
 
     ChatMessage message = ChatMessage
       .builder()
-      .sender(user)
+      .sender(senderProfile)
       .timestamp(LocalDateTime.now())
       .content(content)
       .type(MessageType.CHAT)
       .dialog(dialog)
       .build();
+
     return messageRepository.save(message);
   }
 
   /**
-   * Associe un agent à un dialogue (ex: après notification ou sélection).
-   */
-  @Transactional
-  public void assignAgentToDialog(Long dialogId, Long agentProfileId) {
-    Dialog dialog = dialogRepository
-      .findById(dialogId)
-      .orElseThrow(() -> new RuntimeException("Dialog not found"));
-    UserProfile agent = userProfileRepository
-      .findById(agentProfileId)
-      .orElseThrow(() -> new RuntimeException("Agent not found"));
-    dialog.getParticipants().add(agent);
-    dialogRepository.save(dialog);
-  }
-
-  /**
-   * Enregistre une réponse d'agent dans un dialogue existant.
-   */
-  @Transactional
-  public ChatMessage agentSendMessage(
-    Long dialogId,
-    UserPrincipal agentPrincipal,
-    String content
-  ) {
-    Dialog dialog = dialogRepository
-      .findById(dialogId)
-      .orElseThrow(() -> new RuntimeException("Dialog not found"));
-    UserProfile agent = userProfileRepository
-      .findById(agentPrincipal.getId())
-      .orElseThrow(() -> new RuntimeException("Agent not found"));
-    if (!dialog.getParticipants().contains(agent)) {
-      dialog.getParticipants().add(agent);
-    }
-    ChatMessage response = ChatMessage
-      .builder()
-      .sender(agent) // Utilisation de l'objet UserProfile comme sender
-      .content(content)
-      .timestamp(LocalDateTime.now())
-      .type(MessageType.CHAT)
-      .dialog(dialog)
-      .build();
-    return messageRepository.save(response);
-  }
-
-  /**
-   * Ferme un dialogue existant.
-   *
-   * @param dialogId identifiant du dialogue à fermer
-   * @return le dialogue fermé
-   * @throws RuntimeException si le dialogue n'existe pas
+   * Ferme un dialogue (change son statut).
    */
   @Transactional
   public Dialog closeDialog(Long dialogId) {
@@ -155,5 +133,29 @@ public class DialogService {
     dialog.setClosedAt(LocalDateTime.now());
 
     return dialogRepository.save(dialog);
+  }
+
+  /**
+   * Ajoute un participant à un dialogue existant.
+   */
+  @Transactional
+  public void inviteUser(Long dialogId, Long userId) {
+    Dialog dialog = dialogRepository
+      .findById(dialogId)
+      .orElseThrow(() -> new EntityNotFoundException("Dialog not found"));
+
+    UserProfile invitee = userProfileRepository
+      .findById(userId)
+      .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+    if (!dialog.getParticipants().contains(invitee)) {
+      dialog.getParticipants().add(invitee);
+      dialogRepository.save(dialog);
+
+      messagingTemplate.convertAndSend(
+        "/topic/dialog/" + dialogId + "/invites",
+        Map.of("dialogId", dialogId, "invitedUserId", userId)
+      );
+    }
   }
 }

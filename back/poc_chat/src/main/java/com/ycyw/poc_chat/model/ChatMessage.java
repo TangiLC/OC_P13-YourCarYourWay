@@ -11,29 +11,35 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class ChatMessage {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @EqualsAndHashCode.Include
   private Long id;
 
   @Column(columnDefinition = "TEXT", nullable = false)
+  @EqualsAndHashCode.Include
   private String content;
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
+  @EqualsAndHashCode.Include
   private MessageType type;
 
   @Column(nullable = false)
+  @EqualsAndHashCode.Include
   private LocalDateTime timestamp;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "dialog_id", nullable = false)
-  @JsonIgnore
-  @JsonManagedReference
+  @JsonBackReference
+  @EqualsAndHashCode.Exclude
   private Dialog dialog;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "sender_id", nullable = false)
+  @EqualsAndHashCode.Exclude
   private UserProfile sender;
 }

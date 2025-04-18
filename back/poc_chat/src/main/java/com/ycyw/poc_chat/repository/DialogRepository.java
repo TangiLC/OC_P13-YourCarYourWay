@@ -111,8 +111,7 @@ public interface DialogRepository extends JpaRepository<Dialog, Long> {
     """
         SELECT DISTINCT d
         FROM Dialog d
-        JOIN d.participants p
-        LEFT JOIN FETCH d.participants
+        JOIN FETCH d.participants p
         LEFT JOIN FETCH d.messages m
         LEFT JOIN FETCH m.sender s
         WHERE p.id = :id

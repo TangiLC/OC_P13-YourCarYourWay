@@ -5,17 +5,20 @@ import com.ycyw.poc_chat.mapper.DialogMapper;
 import com.ycyw.poc_chat.model.Dialog;
 import com.ycyw.poc_chat.model.DialogStatus;
 import com.ycyw.poc_chat.repository.DialogRepository;
+import com.ycyw.poc_chat.service.DialogService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -25,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 public class DialogController {
 
   private final DialogRepository dialogRepository;
+  private final DialogService dialogService;
   private final DialogMapper dialogMapper;
 
   @Operation(summary = "Récupère tous les dialogues")
@@ -39,11 +43,12 @@ public class DialogController {
   @GetMapping("/all")
   public ResponseEntity<List<DialogDTO>> getAllDialogs() {
     Set<Dialog> dialogs = dialogRepository.findAllWithMessagesAndSenders();
-    List<DialogDTO> dialogDTOs = dialogs.stream()
-        .map(dialogMapper::toDialogDTO)
-        .collect(Collectors.toList());
+    List<DialogDTO> dialogDTOs = dialogs
+      .stream()
+      .map(dialogMapper::toDialogDTO)
+      .collect(Collectors.toList());
     return ResponseEntity.ok(dialogDTOs);
-}
+  }
 
   @Operation(
     summary = "Récupère les dialogues par statut",
@@ -93,5 +98,28 @@ public class DialogController {
       .stream()
       .map(dialogMapper::toDialogDTO)
       .collect(Collectors.toSet());
+  }
+
+  @Operation(
+    summary = "Invite un utilisateur dans un dialogue",
+    description = "(rôle restreint AGENT/ADMIN)"
+  )
+  @ApiResponse(responseCode = "200", description = "Invitation envoyée")
+  @ApiResponse(
+    responseCode = "404",
+    description = "Dialogue ou utilisateur introuvable"
+  )
+  @PostMapping("/{dialogId}/invite/{userId}")
+  @PreAuthorize("hasAnyRole('AGENT','ADMIN')")
+  public ResponseEntity<Void> inviteUserToDialog(
+    @PathVariable Long dialogId,
+    @PathVariable Long userId
+  ) {
+    try {
+      dialogService.inviteUser(dialogId, userId);
+      return ResponseEntity.ok().build();
+    } catch (EntityNotFoundException ex) {
+      return ResponseEntity.notFound().build();
+    }
   }
 }
