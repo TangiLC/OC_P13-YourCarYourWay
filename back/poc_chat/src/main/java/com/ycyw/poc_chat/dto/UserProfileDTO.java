@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserProfileResponse {
+public class UserProfileDTO {
 
   @Schema(description = "Id du profil", example = "42")
   private Long id;

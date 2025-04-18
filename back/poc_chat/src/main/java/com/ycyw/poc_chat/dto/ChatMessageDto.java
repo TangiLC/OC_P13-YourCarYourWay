@@ -15,7 +15,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 @Schema(description = "Message de chat échangé via WebSocket")
-public class ChatMessageDto {
+public class ChatMessageDTO {
 
   @Schema(description = "Identifiant du message")
   private Long id;

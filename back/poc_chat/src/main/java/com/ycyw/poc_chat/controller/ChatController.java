@@ -1,6 +1,6 @@
 package com.ycyw.poc_chat.controller;
 
-import com.ycyw.poc_chat.dto.ChatMessageDto;
+import com.ycyw.poc_chat.dto.ChatMessageDTO;
 import com.ycyw.poc_chat.model.ChatMessage;
 import com.ycyw.poc_chat.model.Dialog;
 import com.ycyw.poc_chat.model.DialogStatus;
@@ -36,7 +36,7 @@ public class ChatController {
   )
   @MessageMapping("/chat.sendMessage")
   public void sendUserMessage(
-    ChatMessageDto message,
+    ChatMessageDTO message,
     SimpMessageHeaderAccessor headerAccessor
   ) {
     processAuthenticatedRequest(
@@ -67,7 +67,7 @@ public class ChatController {
   @Operation(summary = "Répondre dans un dialogue existant")
   @MessageMapping("/chat.reply")
   public void replyToDialog(
-    ChatMessageDto message,
+    ChatMessageDTO message,
     SimpMessageHeaderAccessor headerAccessor
   ) {
     processAuthenticatedRequest(
@@ -98,7 +98,7 @@ public class ChatController {
   @Operation(summary = "Notification de connexion d'un utilisateur")
   @MessageMapping("/chat.addUser")
   public void addUser(
-    ChatMessageDto message,
+    ChatMessageDTO message,
     SimpMessageHeaderAccessor headerAccessor
   ) {
     processAuthenticatedRequest(
@@ -119,7 +119,7 @@ public class ChatController {
   )
   @MessageMapping("/chat.disconnect")
   public void disconnectUser(
-    ChatMessageDto message,
+    ChatMessageDTO message,
     SimpMessageHeaderAccessor headerAccessor
   ) {
     processAuthenticatedRequest(
@@ -156,7 +156,7 @@ public class ChatController {
    */
   private void processAuthenticatedRequest(
     String methodName,
-    ChatMessageDto message,
+    ChatMessageDTO message,
     SimpMessageHeaderAccessor headerAccessor,
     BiConsumer<UserPrincipal, UserProfile> authenticatedAction
   ) {
@@ -220,7 +220,7 @@ public class ChatController {
    * @param messageType Le type de message
    */
   private void prepareMessage(
-    ChatMessageDto message,
+    ChatMessageDTO message,
     String senderName,
     MessageType messageType
   ) {

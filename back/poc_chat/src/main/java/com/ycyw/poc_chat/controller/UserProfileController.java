@@ -1,7 +1,7 @@
 package com.ycyw.poc_chat.controller;
 
 import com.ycyw.poc_chat.dto.UserProfileRequest;
-import com.ycyw.poc_chat.dto.UserProfileResponse;
+import com.ycyw.poc_chat.dto.UserProfileDTO;
 import com.ycyw.poc_chat.mapper.UserProfileMapper;
 import com.ycyw.poc_chat.model.UserProfile;
 import com.ycyw.poc_chat.repository.UserProfileRepository;
@@ -43,11 +43,11 @@ public class UserProfileController {
     responseCode = "200",
     description = "Profil de l'utilisateur connecté",
     content = @Content(
-      schema = @Schema(implementation = UserProfileResponse.class)
+      schema = @Schema(implementation = UserProfileDTO.class)
     )
   )
   @GetMapping("/me")
-  public ResponseEntity<UserProfileResponse> getMyProfile(
+  public ResponseEntity<UserProfileDTO> getMyProfile(
     @AuthenticationPrincipal UserPrincipal principal
   ) {
     UserProfile profile = userProfileRepository.findByUserCredentialId(
@@ -72,7 +72,7 @@ public class UserProfileController {
         responseCode = "200",
         description = "Profil trouvé",
         content = @Content(
-          schema = @Schema(implementation = UserProfileResponse.class)
+          schema = @Schema(implementation = UserProfileDTO.class)
         )
       ),
       @ApiResponse(responseCode = "404", description = "Profil non trouvé"),
@@ -80,7 +80,7 @@ public class UserProfileController {
   )
   @PreAuthorize("hasAnyRole('AGENT', 'ADMIN')")
   @GetMapping("/{userId}")
-  public ResponseEntity<UserProfileResponse> getProfileByUserId(
+  public ResponseEntity<UserProfileDTO> getProfileByUserId(
     @Parameter(
       description = "ID utilisateur (depuis user_credentials)"
     ) @PathVariable Long userId
@@ -105,7 +105,7 @@ public class UserProfileController {
         responseCode = "200",
         description = "Profil mis à jour",
         content = @Content(
-          schema = @Schema(implementation = UserProfileResponse.class)
+          schema = @Schema(implementation = UserProfileDTO.class)
         )
       ),
       @ApiResponse(responseCode = "404", description = "Profil non trouvé"),
@@ -114,7 +114,7 @@ public class UserProfileController {
     }
   )
   @PutMapping("/{userId}")
-  public ResponseEntity<UserProfileResponse> updateProfile(
+  public ResponseEntity<UserProfileDTO> updateProfile(
     @Parameter(
       description = "ID utilisateur (depuis user_credentials)"
     ) @PathVariable Long userId,

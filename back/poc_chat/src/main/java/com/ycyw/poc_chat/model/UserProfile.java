@@ -1,28 +1,11 @@
 package com.ycyw.poc_chat.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
+import com.fasterxml.jackson.annotation.*;
+import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-/**
- * Représente un profil utilisateur lié à des informations personnelles non sensibles.
- * Chaque UserProfile est associé à un UserCredential.
- */
 @Entity
 @Table(name = "user_profiles")
 @Data
@@ -40,13 +23,6 @@ public class UserProfile {
   @JsonIgnore
   private UserCredential userCredential;
 
-  /* futur dev : 1 credential to many profile
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "user_id", nullable = false)
-  @JsonIgnore
-  private UserCredential userCredential;
-*/
-
   private String firstName;
   private String lastName;
   private String company;
@@ -55,6 +31,7 @@ public class UserProfile {
   private ProfileType type;
 
   @ManyToMany(mappedBy = "participants")
+  @JsonIgnoreProperties({ "participants" }) // Évite la boucle infinie
   @Builder.Default
   private Set<Dialog> dialogs = new HashSet<>();
 }

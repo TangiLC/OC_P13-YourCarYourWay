@@ -1,0 +1,97 @@
+package com.ycyw.poc_chat.controller;
+
+import com.ycyw.poc_chat.dto.DialogDTO;
+import com.ycyw.poc_chat.mapper.DialogMapper;
+import com.ycyw.poc_chat.model.Dialog;
+import com.ycyw.poc_chat.model.DialogStatus;
+import com.ycyw.poc_chat.repository.DialogRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/dialog")
+@RequiredArgsConstructor
+@Tag(name = "Dialog API", description = "API pour gérer les dialogues")
+public class DialogController {
+
+  private final DialogRepository dialogRepository;
+  private final DialogMapper dialogMapper;
+
+  @Operation(summary = "Récupère tous les dialogues")
+  @ApiResponse(
+    responseCode = "200",
+    description = "Liste des dialogues retournée",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = DialogDTO.class)
+    )
+  )
+  @GetMapping("/all")
+  public ResponseEntity<List<DialogDTO>> getAllDialogs() {
+    Set<Dialog> dialogs = dialogRepository.findAllWithMessagesAndSenders();
+    List<DialogDTO> dialogDTOs = dialogs.stream()
+        .map(dialogMapper::toDialogDTO)
+        .collect(Collectors.toList());
+    return ResponseEntity.ok(dialogDTOs);
+}
+
+  @Operation(
+    summary = "Récupère les dialogues par statut",
+    description = "Statut possible : OPEN, PENDING, CLOSED"
+  )
+  @GetMapping("/status/{status}")
+  public List<DialogDTO> getDialogsByStatus(
+    @Parameter(
+      description = "Statut du dialogue (OPEN, PENDING, CLOSED)",
+      required = true
+    ) @PathVariable DialogStatus status
+  ) {
+    return dialogRepository
+      .findByStatus(status)
+      .stream()
+      .map(dialogMapper::toDialogDTO)
+      .collect(Collectors.toList());
+  }
+
+  @Operation(summary = "Récupère un dialogue par ID avec messages et senders")
+  @GetMapping("/{id}")
+  public ResponseEntity<DialogDTO> getDialogById(
+    @Parameter(
+      description = "ID du dialogue à récupérer",
+      required = true
+    ) @PathVariable Long id
+  ) {
+    return dialogRepository
+      .findByIdWithMessagesAndSenders(id)
+      .map(dialog -> ResponseEntity.ok(dialogMapper.toDialogDTO(dialog)))
+      .orElse(ResponseEntity.notFound().build());
+  }
+
+  @Operation(
+    summary = "Récupère les dialogues par sender",
+    description = "Renvoie les dialogues où l'utilisateur a posté un message"
+  )
+  @GetMapping("/sender/{id}")
+  public Set<DialogDTO> getDialogsBySender(
+    @Parameter(
+      description = "ID du sender ayant posté des messages",
+      required = true
+    ) @PathVariable("id") Long id
+  ) {
+    return dialogRepository
+      .findDistinctByParticipantsIdWithMessagesAndSenders(id)
+      .stream()
+      .map(dialogMapper::toDialogDTO)
+      .collect(Collectors.toSet());
+  }
+}

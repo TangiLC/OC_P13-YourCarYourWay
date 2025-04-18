@@ -4,11 +4,11 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import lombok.*;
 
-/**
- * Entité représentant un dialogue entre utilisateurs, regroupant des messages.
- */
 @Entity
 @Table(name = "dialogs")
 @Data
@@ -34,9 +34,6 @@ public class Dialog {
   @Column(name = "closed_at")
   private LocalDateTime closedAt;
 
-  /**
-   * Participants (utilisateur, agent...) liés au dialogue.
-   */
   @ManyToMany
   @JoinTable(
     name = "rel_user_dialog",
@@ -46,15 +43,14 @@ public class Dialog {
   @Builder.Default
   private Set<UserProfile> participants = new HashSet<>();
 
-  /**
-   * Liste des messages associés à ce dialogue.
-   */
+  // Évite la référence cyclique lors de la sérialisation JSON
   @OneToMany(
     mappedBy = "dialog",
     cascade = CascadeType.ALL,
     orphanRemoval = true
   )
   @Builder.Default
+  @JsonManagedReference
   private Set<ChatMessage> messages = new HashSet<>();
 
   @PrePersist

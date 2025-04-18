@@ -1,12 +1,10 @@
 package com.ycyw.poc_chat.model;
 
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import lombok.*;
 
-/**
- * Entité représentant un message échangé dans un dialogue.
- */
 @Entity
 @Table(name = "messages")
 @Data
@@ -29,16 +27,12 @@ public class ChatMessage {
   @Column(nullable = false)
   private LocalDateTime timestamp;
 
-  /**
-   * Référence vers le dialogue parent.
-   */
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "dialog_id", nullable = false)
+  @JsonIgnore
+  @JsonManagedReference
   private Dialog dialog;
 
-  /**
-   * Auteur du message.
-   */
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "sender_id", nullable = false)
   private UserProfile sender;

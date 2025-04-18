@@ -1,6 +1,6 @@
 package com.ycyw.poc_chat.mapper;
 
-import com.ycyw.poc_chat.dto.ChatMessageDto;
+import com.ycyw.poc_chat.dto.ChatMessageDTO;
 import com.ycyw.poc_chat.model.ChatMessage;
 import com.ycyw.poc_chat.model.Dialog;
 import com.ycyw.poc_chat.model.UserProfile;
@@ -13,7 +13,7 @@ import org.mapstruct.*;
 public interface ChatMessageMapper {
   @Mapping(source = "dialog.id", target = "dialogId")
   @Mapping(source = "sender.id", target = "sender")
-  ChatMessageDto toDto(ChatMessage entity);
+  ChatMessageDTO toDto(ChatMessage entity);
 
   /**
    * Convertit un DTO vers une entité.
@@ -21,14 +21,14 @@ public interface ChatMessageMapper {
    */
   @Mapping(target = "dialog", ignore = true)
   @Mapping(target = "sender", ignore = true)
-  ChatMessage toEntity(ChatMessageDto dto);
+  ChatMessage toEntity(ChatMessageDTO dto);
 
   /**
    * Enrichit une entité avec son dialogue et son expéditeur.
    */
   @AfterMapping
   default void linkEntities(
-    ChatMessageDto dto,
+    ChatMessageDTO dto,
     @MappingTarget ChatMessage message,
     @Context Dialog dialog,
     @Context UserProfile sender

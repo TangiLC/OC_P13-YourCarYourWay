@@ -86,7 +86,9 @@ public class SecurityConfig {
             "/v3/api-docs/**",
             "/ws/**",
             "/ws/info/**",
-            "/ws/iframe.html","/test-websocket.html"
+            "/ws/iframe.html",
+            "/test-websocket.html",
+            "/dialog/**"    //dev only
           )
           .permitAll()
           .anyRequest()
