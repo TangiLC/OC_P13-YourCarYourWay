@@ -38,6 +38,10 @@ public class Dialog {
   @EqualsAndHashCode.Exclude
   private LocalDateTime closedAt;
 
+  @Column(name = "last_activity_at", nullable = false)
+  @EqualsAndHashCode.Exclude
+  private LocalDateTime lastActivityAt;
+
   @ManyToMany
   @JoinTable(
     name = "rel_user_dialog",
@@ -61,6 +65,12 @@ public class Dialog {
   @PrePersist
   public void prePersist() {
     this.createdAt = LocalDateTime.now();
+    this.lastActivityAt = LocalDateTime.now();
+  }
+
+  @PreUpdate
+  public void onUpdate() {
+    this.lastActivityAt = LocalDateTime.now();
   }
 
   public void addMessage(ChatMessage message) {

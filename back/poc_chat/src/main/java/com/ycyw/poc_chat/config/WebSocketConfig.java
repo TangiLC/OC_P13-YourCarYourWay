@@ -1,6 +1,5 @@
 package com.ycyw.poc_chat.config;
 
-import com.ycyw.poc_chat.security.JwtHandshakeInterceptor;
 import com.ycyw.poc_chat.security.JwtTokenProvider;
 import com.ycyw.poc_chat.security.WebSocketAuthInterceptor;
 import org.springframework.context.annotation.Configuration;

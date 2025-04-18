@@ -14,6 +14,7 @@ public class DialogDTO {
   private DialogStatus status;
   private LocalDateTime createdAt;
   private LocalDateTime closedAt;
+  private LocalDateTime lastActivityAt;
   private Set<UserProfileDTO> participants = new HashSet<>();
   private Set<ChatMessageDTO> messages = new HashSet<>();
 }

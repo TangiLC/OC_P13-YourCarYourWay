@@ -22,16 +22,16 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/dialog")
+@RequestMapping("/api/dialog")
 @RequiredArgsConstructor
-@Tag(name = "Dialog API", description = "API pour gérer les dialogues")
+@Tag(name = "Chat API", description = "API pour le chat avec parallèle WebSocket")
 public class DialogController {
 
   private final DialogRepository dialogRepository;
   private final DialogService dialogService;
   private final DialogMapper dialogMapper;
 
-  @Operation(summary = "Récupère tous les dialogues")
+  @Operation(summary = "Récupérer tous les dialogues")
   @ApiResponse(
     responseCode = "200",
     description = "Liste des dialogues retournée",
@@ -51,7 +51,7 @@ public class DialogController {
   }
 
   @Operation(
-    summary = "Récupère les dialogues par statut",
+    summary = "Récupérer les dialogues par statut",
     description = "Statut possible : OPEN, PENDING, CLOSED"
   )
   @GetMapping("/status/{status}")
@@ -68,7 +68,7 @@ public class DialogController {
       .collect(Collectors.toList());
   }
 
-  @Operation(summary = "Récupère un dialogue par ID avec messages et senders")
+  @Operation(summary = "Récupérer un dialogue par ID avec messages et senders")
   @GetMapping("/{id}")
   public ResponseEntity<DialogDTO> getDialogById(
     @Parameter(
@@ -83,7 +83,7 @@ public class DialogController {
   }
 
   @Operation(
-    summary = "Récupère les dialogues par sender",
+    summary = "Récupérer les dialogues par sender",
     description = "Renvoie les dialogues où l'utilisateur a posté un message"
   )
   @GetMapping("/sender/{id}")
@@ -101,7 +101,7 @@ public class DialogController {
   }
 
   @Operation(
-    summary = "Invite un utilisateur dans un dialogue",
+    summary = "Inviter un utilisateur dans un dialogue",
     description = "(rôle restreint AGENT/ADMIN)"
   )
   @ApiResponse(responseCode = "200", description = "Invitation envoyée")

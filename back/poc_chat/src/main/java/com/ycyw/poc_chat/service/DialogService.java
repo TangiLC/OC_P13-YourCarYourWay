@@ -7,6 +7,8 @@ import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
+import java.util.UUID;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.AccessDeniedException;
@@ -37,10 +39,16 @@ public class DialogService {
       .getAuthentication();
     UserPrincipal requester = (UserPrincipal) auth.getPrincipal();
 
-    String finalTopic = (topic == null || topic.isBlank())
-      ? "Chat_" +
-      LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))
-      : topic;
+    String timestamp = LocalDateTime.now()
+        .format(DateTimeFormatter.ofPattern("yyyyMMdd_HH:mm:ss"));
+
+    final String finalTopic;
+    if (topic == null || topic.isBlank()) {
+        String uuid = UUID.randomUUID().toString();
+        finalTopic = "Chat_" + uuid + ".@" + timestamp;
+    } else {
+        finalTopic = topic + ".@" + timestamp;
+    }
 
     Dialog dialog = Dialog
       .builder()
@@ -94,6 +102,7 @@ public class DialogService {
         dialog.setStatus(DialogStatus.OPEN);
       }
     }
+    dialog.setLastActivityAt(LocalDateTime.now());
 
     if (
       dialog
@@ -128,7 +137,6 @@ public class DialogService {
     if (dialog.getStatus() == DialogStatus.CLOSED) {
       throw new RuntimeException("Dialog already closed");
     }
-
     dialog.setStatus(DialogStatus.CLOSED);
     dialog.setClosedAt(LocalDateTime.now());
 
@@ -150,6 +158,7 @@ public class DialogService {
 
     if (!dialog.getParticipants().contains(invitee)) {
       dialog.getParticipants().add(invitee);
+      dialog.setLastActivityAt(LocalDateTime.now());
       dialogRepository.save(dialog);
 
       messagingTemplate.convertAndSend(

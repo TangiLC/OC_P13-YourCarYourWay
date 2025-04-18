@@ -1,0 +1,88 @@
+package com.ycyw.poc_chat.lifecycle;
+
+import com.ycyw.poc_chat.model.DialogStatus;
+import com.ycyw.poc_chat.repository.DialogRepository;
+import com.ycyw.poc_chat.service.DialogService;
+import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+
+@Service
+@EnableScheduling
+@RequiredArgsConstructor
+public class DialogLifecycleManager {
+
+  private final DialogRepository dialogRepository;
+  private final DialogService dialogService;
+  private final SimpMessagingTemplate messagingTemplate;
+  private final ConcurrentMap<Long, Set<String>> activeSessions = new ConcurrentHashMap<>();
+  private final Set<Long> warnedDialogs = ConcurrentHashMap.newKeySet();
+
+  public void userJoined(Long dialogId, String username) {
+    activeSessions
+      .computeIfAbsent(dialogId, id -> ConcurrentHashMap.newKeySet())
+      .add(username);
+  }
+
+  public void userLeft(Long dialogId, String username) {
+    Set<String> sessions = activeSessions.get(dialogId);
+    if (sessions != null) {
+      sessions.remove(username);
+      if (sessions.isEmpty()) {
+        dialogService.closeDialog(dialogId);
+        messagingTemplate.convertAndSend(
+          "/topic/dialog/" + dialogId,
+          Map.of("type", "CLOSE", "dialogId", dialogId)
+        );
+      }
+    }
+  }
+
+  /**
+   * Toutes les 10 minutes :
+   * - À 49 min d’inactivité, on prévient une seule fois.
+   * - À 59 min d’inactivité, on ferme le salon.
+   */
+  @Scheduled(fixedRate = 600_000)
+  public void manageInactiveDialogs() {
+    LocalDateTime now = LocalDateTime.now();
+    LocalDateTime warnThreshold = now.minusMinutes(49);
+    LocalDateTime closeThreshold = now.minusMinutes(59);
+
+    dialogRepository
+      .findByStatus(DialogStatus.OPEN)
+      .forEach(dialog -> {
+        Long id = dialog.getId();
+        LocalDateTime last = dialog.getLastActivityAt();
+
+        if (last.isBefore(warnThreshold) && !warnedDialogs.contains(id)) {
+          messagingTemplate.convertAndSend(
+            "/topic/dialog/" + id,
+            Map.of(
+              "type",
+              "INFO",
+              "message",
+              "Le salon est inactif et va fermer dans 10 min."
+            )
+          );
+          warnedDialogs.add(id);
+        }
+
+        if (last.isBefore(closeThreshold)) {
+          dialogService.closeDialog(id);
+          messagingTemplate.convertAndSend(
+            "/topic/dialog/" + id,
+            Map.of("type", "CLOSE", "dialogId", id)
+          );
+          warnedDialogs.remove(id);
+        }
+      });
+  }
+}

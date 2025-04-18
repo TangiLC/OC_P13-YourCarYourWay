@@ -1,6 +1,7 @@
 package com.ycyw.poc_chat.controller;
 
 import com.ycyw.poc_chat.dto.ChatMessageDTO;
+import com.ycyw.poc_chat.lifecycle.DialogLifecycleManager;
 import com.ycyw.poc_chat.model.ChatMessage;
 import com.ycyw.poc_chat.model.Dialog;
 import com.ycyw.poc_chat.model.MessageType;
@@ -26,11 +27,12 @@ import org.springframework.stereotype.Controller;
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "WebSocket Chat", description = "Endpoints WebSocket pour le chat")
-public class ChatController {
+public class WSChatController {
 
   private final SimpMessagingTemplate messagingTemplate;
   private final DialogService dialogService;
   private final UserProfileRepository userProfileRepository;
+  private final DialogLifecycleManager lifecycleManager;
 
   @Operation(summary = "Créer un nouveau salon de discussion (dialogue)")
   @MessageMapping("/chat.createDialog")
@@ -108,6 +110,7 @@ public class ChatController {
         prepareMessage(message, profile.getFirstName(), MessageType.JOIN);
         String destination = "/topic/dialog/" + message.getDialogId();
         messagingTemplate.convertAndSend(destination, message);
+        lifecycleManager.userJoined(message.getDialogId(), user.getUsername());
       }
     );
   }
@@ -140,6 +143,7 @@ public class ChatController {
         }
         String destination = "/topic/dialog/" + message.getDialogId();
         messagingTemplate.convertAndSend(destination, message);
+        lifecycleManager.userLeft(message.getDialogId(), user.getUsername());
       }
     );
   }
