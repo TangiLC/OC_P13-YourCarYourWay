@@ -36,5 +36,6 @@ public class UserProfile {
 
   @ManyToMany(mappedBy = "participants")
   @JsonBackReference
+  @Builder.Default
   private Set<Dialog> dialogs = new HashSet<>();
 }

@@ -35,11 +35,9 @@ public class ChatMessage {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "dialog_id", nullable = false)
   @JsonBackReference
-  @EqualsAndHashCode.Exclude
   private Dialog dialog;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "sender_id", nullable = false)
-  @EqualsAndHashCode.Exclude
   private UserProfile sender;
 }

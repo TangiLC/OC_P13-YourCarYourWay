@@ -21,25 +21,20 @@ public class Dialog {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(length = 255)
-  @EqualsAndHashCode.Exclude
+  @Column(length = 25)
   private String topic;
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
-  @EqualsAndHashCode.Exclude
   private DialogStatus status;
 
   @Column(name = "created_at", nullable = false, updatable = false)
-  @EqualsAndHashCode.Exclude
   private LocalDateTime createdAt;
 
   @Column(name = "closed_at")
-  @EqualsAndHashCode.Exclude
   private LocalDateTime closedAt;
 
   @Column(name = "last_activity_at", nullable = false)
-  @EqualsAndHashCode.Exclude
   private LocalDateTime lastActivityAt;
 
   @ManyToMany
@@ -49,7 +44,6 @@ public class Dialog {
     inverseJoinColumns = @JoinColumn(name = "user_profile_id")
   )
   @JsonManagedReference
-  @EqualsAndHashCode.Exclude
   @Builder.Default
   private Set<UserProfile> participants = new HashSet<>();
 
@@ -60,7 +54,6 @@ public class Dialog {
   )
   @Builder.Default
   @JsonManagedReference
-  @EqualsAndHashCode.Exclude
   private Set<ChatMessage> messages = new HashSet<>();
 
   @PrePersist

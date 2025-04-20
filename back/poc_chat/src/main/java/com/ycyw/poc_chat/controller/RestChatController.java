@@ -2,7 +2,6 @@ package com.ycyw.poc_chat.controller;
 
 import com.ycyw.poc_chat.dto.ChatMessageDTO;
 import com.ycyw.poc_chat.dto.DialogResponseDTO;
-import com.ycyw.poc_chat.lifecycle.DialogLifecycleManager;
 import com.ycyw.poc_chat.model.ChatMessage;
 import com.ycyw.poc_chat.model.Dialog;
 import com.ycyw.poc_chat.security.UserPrincipal;
@@ -35,7 +34,6 @@ public class RestChatController {
 
   private final DialogService dialogService;
   private final SimpMessagingTemplate messagingTemplate;
-  private final DialogLifecycleManager lifecycleManager;
 
   /**
    * Crée un nouveau salon de discussion.
@@ -120,7 +118,12 @@ public class RestChatController {
     Long senderId = user.getId();
     String content = body.get("content");
 
-    ChatMessage saved = dialogService.sendMessage(dialogId, senderId, content, user.isClient());
+    ChatMessage saved = dialogService.sendMessage(
+      dialogId,
+      senderId,
+      content,
+      user.isClient()
+    );
     ChatMessageDTO chatMessageDto = new ChatMessageDTO(
       saved.getId(),
       saved.getContent(),
