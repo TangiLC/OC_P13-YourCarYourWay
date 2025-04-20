@@ -18,7 +18,6 @@ import { environment } from '../../../environments/environment';
   imports: [
     ReactiveFormsModule,
     CommonModule,
-    ReactiveFormsModule,
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
