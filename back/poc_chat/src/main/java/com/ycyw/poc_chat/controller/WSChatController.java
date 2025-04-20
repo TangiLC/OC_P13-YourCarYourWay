@@ -45,7 +45,7 @@ public class WSChatController {
       null,
       headerAccessor,
       (user, profile) -> {
-        Dialog dialog = dialogService.createDialog(topic);
+        Dialog dialog = dialogService.createDialog(topic, user.getId());
         log.info(
           "Dialog {} created by user {}",
           dialog.getId(),
@@ -86,7 +86,8 @@ public class WSChatController {
         ChatMessage saved = dialogService.sendMessage(
           message.getDialogId(),
           user.getId(),
-          message.getContent()
+          message.getContent(),
+          user.isClient()
         );
 
         message.setId(saved.getId());

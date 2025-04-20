@@ -1,6 +1,5 @@
 package com.ycyw.poc_chat.config;
 
-import com.ycyw.poc_chat.security.JwtTokenProvider;
 import com.ycyw.poc_chat.security.WebSocketAuthInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
@@ -13,14 +12,9 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-  private final JwtTokenProvider jwtTokenProvider;
   private final WebSocketAuthInterceptor webSocketAuthInterceptor;
 
-  public WebSocketConfig(
-    JwtTokenProvider jwtTokenProvider,
-    WebSocketAuthInterceptor webSocketAuthInterceptor
-  ) {
-    this.jwtTokenProvider = jwtTokenProvider;
+  public WebSocketConfig(WebSocketAuthInterceptor webSocketAuthInterceptor) {
     this.webSocketAuthInterceptor = webSocketAuthInterceptor;
   }
 
@@ -37,7 +31,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
   public void registerStompEndpoints(StompEndpointRegistry registry) {
     registry
       .addEndpoint("/ws")
-      //.addInterceptors(new JwtHandshakeInterceptor(jwtTokenProvider))
       .setAllowedOriginPatterns("*")
       .withSockJS()
       .setSuppressCors(true);

@@ -2,18 +2,14 @@ package com.ycyw.poc_chat.service;
 
 import com.ycyw.poc_chat.model.*;
 import com.ycyw.poc_chat.repository.*;
-import com.ycyw.poc_chat.security.UserPrincipal;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.UUID;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,27 +23,29 @@ public class DialogService {
   private final SimpMessagingTemplate messagingTemplate;
 
   /**
-   * Crée un nouveau dialogue pour un utilisateur donné.
-   *
-   * @param userProfileId ID du profil utilisateur
-   * @return le dialogue créé
-   */
++   * Crée un nouveau dialogue pour un utilisateur donné.
++   *
++   * @param topic        sujet du dialogue
++   * @param requesterId  ID de l’utilisateur (récupéré en amont)
++   * @return le dialogue créé
++   */
   @Transactional
-  public Dialog createDialog(String topic) {
-    Authentication auth = SecurityContextHolder
+  public Dialog createDialog(String topic, Long requesterId) {
+    /*Authentication auth = SecurityContextHolder
       .getContext()
       .getAuthentication();
-    UserPrincipal requester = (UserPrincipal) auth.getPrincipal();
+    UserPrincipal requester = (UserPrincipal) auth.getPrincipal();*/
 
-    String timestamp = LocalDateTime.now()
-        .format(DateTimeFormatter.ofPattern("yyyyMMdd_HH:mm:ss"));
+    String timestamp = LocalDateTime
+      .now()
+      .format(DateTimeFormatter.ofPattern("yyyyMMdd_HH:mm:ss"));
 
     final String finalTopic;
     if (topic == null || topic.isBlank()) {
-        String uuid = UUID.randomUUID().toString();
-        finalTopic = "Chat_" + uuid + ".@" + timestamp;
+      String uuid = UUID.randomUUID().toString();
+      finalTopic = "Chat_" + uuid + ".@" + timestamp;
     } else {
-        finalTopic = topic + ".@" + timestamp;
+      finalTopic = topic + ".@" + timestamp;
     }
 
     Dialog dialog = Dialog
@@ -57,10 +55,11 @@ public class DialogService {
       .createdAt(LocalDateTime.now())
       .build();
 
-    UserProfile clientProfile = UserProfile
-      .builder()
-      .id(requester.getId())
-      .build();
+    if (dialog.getParticipants() == null) {
+      dialog.setParticipants(new HashSet<>());
+    }
+
+    UserProfile clientProfile = UserProfile.builder().id(requesterId).build();
     dialog.getParticipants().add(clientProfile);
 
     return dialogRepository.save(dialog);
@@ -75,33 +74,30 @@ public class DialogService {
    * @return le message enregistré
    */
   @Transactional
-  public ChatMessage sendMessage(Long dialogId, Long senderId, String content) {
-    Authentication auth = SecurityContextHolder
-      .getContext()
-      .getAuthentication();
-    UserPrincipal requester = (UserPrincipal) auth.getPrincipal();
+  public ChatMessage sendMessage(
+    Long dialogId,
+    Long senderId,
+    String content,
+    boolean isClient
+  ) {
     UserProfile senderProfile;
     Dialog dialog = dialogRepository
       .findById(dialogId)
       .orElseThrow(() -> new RuntimeException("Dialog not found"));
 
-    if (requester.isClient()) {
-      if (!requester.getId().equals(senderId)) {
-        throw new AccessDeniedException("User and sender id mismatch!");
-      }
+    if (isClient) {
       if (dialog.getStatus() == DialogStatus.CLOSED) {
         dialog.setStatus(DialogStatus.PENDING);
         dialog.setClosedAt(null);
       }
-
       senderProfile = UserProfile.builder().id(senderId).build();
     } else {
       senderProfile = userProfileRepository.getReferenceById(senderId);
-
       if (dialog.getStatus() == DialogStatus.PENDING) {
         dialog.setStatus(DialogStatus.OPEN);
       }
     }
+
     dialog.setLastActivityAt(LocalDateTime.now());
 
     if (

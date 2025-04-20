@@ -7,84 +7,27 @@
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            line-height: 1.5;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .btn {
-            padding: 8px 12px;
-            margin-right: 5px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .btn-primary {
-            background-color: #4CAF50;
-            color: white;
-        }
-
-        .btn-secondary {
-            background-color: #2196F3;
-            color: white;
-        }
-
-        .btn-danger {
-            background-color: #f44336;
-            color: white;
-        }
-
-        textarea,
-        input[type="text"] {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-
-        ul#messages {
-            list-style-type: none;
-            padding: 0;
-            max-height: 300px;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-            padding: 10px;
-        }
-
-        ul#messages li {
-            margin-bottom: 5px;
-            padding: 5px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .current-dialog {
-            background-color: #f9f9f9;
-            padding: 10px;
-            border-radius: 4px;
-            margin-bottom: 15px;
-        }
+        body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.5; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .form-group { margin-bottom: 15px; }
+        .btn { padding: 8px 12px; margin-right: 5px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-primary { background-color: #4CAF50; color: white; }
+        .btn-secondary { background-color: #2196F3; color: white; }
+        .btn-danger { background-color: #f44336; color: white; }
+        textarea, input[type="text"] { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        ul#messages { list-style-type: none; padding: 0; max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; }
+        ul#messages li { margin-bottom: 5px; padding: 5px; border-bottom: 1px solid #eee; }
+        .current-dialog { background-color: #f9f9f9; padding: 10px; border-radius: 4px; margin-bottom: 15px; }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <h2>WebSocket Chat Test</h2>
+        <h2>WebSocket Chat Test v3</h2>
 
         <div class="form-group">
             <label for="jwt">JWT Token :</label>
-            <textarea id="jwt" rows="4" placeholder="Collez votre JWT ici"></textarea>
+            <textarea id="jwt" rows="2" placeholder="Collez votre JWT ici"></textarea>
             <button class="btn btn-primary" onclick="connect()">Se connecter</button>
         </div>
 
@@ -95,14 +38,15 @@
         </div>
 
         <div class="form-group">
+            <label for="topic">Topic du nouveau dialogue :</label>
+            <input type="text" id="topic" placeholder="Entrez un topic ou laissez vide" />
             <button class="btn btn-primary" onclick="createNewDialog()">Nouveau dialogue</button>
         </div>
 
         <div class="form-group">
             <label for="message">Message :</label>
-            <input type="text" id="message" placeholder="Tapez un message..." />
-            <button class="btn btn-primary" onclick="sendMessage()">Envoyer</button>
-            <button class="btn btn-secondary" onclick="replyToDialog()">Répondre</button>
+            <input type="text" id="message" placeholder="Tapez un message" />
+            <button class="btn btn-secondary" onclick="sendMessage()">Envoyer</button>
             <button class="btn btn-danger" onclick="closeDialog()">Fermer dialogue</button>
         </div>
 
@@ -113,7 +57,7 @@
     <script>
         let stompClient = null;
         let currentDialogId = null;
-        let isAgent = false; // Définir à true pour tester en tant qu'agent
+        let pendingMessage = null;
 
         function connect() {
             const socket = new SockJS("http://localhost:8080/ws");
@@ -122,54 +66,58 @@
             stompClient.heartbeat.incoming = 0;
 
             const token = document.getElementById("jwt").value.trim();
+            if (!token) {
+                alert("Veuillez entrer un JWT valide.");
+                return;
+            }
+            stompClient.connect({ Authorization: "Bearer " + token }, onConnect, onError);
+        }
 
-            stompClient.connect(
-                { Authorization: "Bearer " + token },
-                function (frame) {
-                    console.log("✅ Connecté : ", frame);
-                    console.log("Connecté au serveur : " + (frame.headers?.server || "inconnu"));
-
-                    // Souscrire au topic public
-                    stompClient.subscribe("/topic/public", function (message) {
-                        try {
-                            const msg = JSON.parse(message.body);
-                            // Mettre à jour l'ID du dialogue si présent dans le message
-                            if (msg.dialogId) {
-                                currentDialogId = msg.dialogId;
-                                document.getElementById("current-dialog-id").textContent = currentDialogId;
-                            }
-
-                            // Afficher le message avec type
-                            let displayText = "";
-                            if (msg.type === "JOIN") {
-                                displayText = `[CONNEXION] ${msg.sender} a rejoint le chat`;
-                            } else if (msg.type === "LEAVE") {
-                                displayText = `[DÉCONNEXION] ${msg.sender} a quitté le chat`;
-                                // Si l'utilisateur quitte et ferme le dialogue actuel
-                                if (msg.dialogId === currentDialogId) {
-                                    displayMessage("Le dialogue actuel a été fermé");
-                                }
-                            } else {
-                                displayText = `${msg.sender} : ${msg.content} (Dialog: ${msg.dialogId})`;
-                            }
-                            displayMessage(displayText);
-
-                        } catch (e) {
-                            console.error("Erreur de parsing:", e);
-                            displayMessage("Message reçu (non-JSON): " + message.body);
-                        }
-                    });
-
-                    // Notifier que l'utilisateur a rejoint le chat
-                    stompClient.send("/app/chat.addUser", {}, JSON.stringify({
-                        content: "Utilisateur connecté"
-                    }));
-                },
-                function (error) {
-                    console.error("Erreur WebSocket : ", error);
-                    alert("Échec de la connexion WebSocket. Vérifiez le JWT.");
+        function onConnect(frame) {
+            displayMessage("✅ Connecté : " + frame);
+            // Souscription pour la création de dialogue
+            stompClient.subscribe('/user/queue/dialog-created', function (message) {
+                const payload = JSON.parse(message.body);
+                currentDialogId = payload.id;
+                document.getElementById("current-dialog-id").textContent = currentDialogId;
+                displayMessage(`[SYSTEM] Salon créé : ${payload.topic} (ID: ${payload.id})`);
+                subscribeDialogTopic();
+                // Envoyer message initial si défini
+                if (pendingMessage) {
+                    stompClient.send(
+                        "/app/chat.sendMessage",
+                        {},
+                        JSON.stringify({ dialogId: currentDialogId, content: pendingMessage, type: 'CHAT' })
+                    );
+                    pendingMessage = null;
                 }
-            );
+            });
+        }
+
+        function onError(error) {
+            console.error("Erreur WebSocket :", error);
+            alert("Échec de la connexion WebSocket. Vérifiez le JWT.");
+        }
+
+        function subscribeDialogTopic() {
+            if (!currentDialogId) return;
+            stompClient.subscribe(`/topic/dialog/${currentDialogId}`, function (message) {
+                try {
+                    const msg = JSON.parse(message.body);
+                    let text = '';
+                    switch (msg.type) {
+                        case 'JOIN': text = `[CONNEXION] ${msg.sender} a rejoint le chat`; break;
+                        case 'LEAVE': text = `[DÉCONNEXION] ${msg.sender} a quitté le chat`; break;
+                        case 'WARNING':
+                        case 'INFO': text = `[ALERTE] ${msg.message || msg.content}`; break;
+                        default: text = `${msg.sender} : ${msg.content}`;
+                    }
+                    displayMessage(text);
+                } catch (e) {
+                    console.error("Erreur parsing :", e);
+                    displayMessage("Message reçu (non-json) : " + message.body);
+                }
+            });
         }
 
         function createNewDialog() {
@@ -177,79 +125,84 @@
                 alert("Veuillez vous connecter d'abord");
                 return;
             }
-
-            const messageContent = document.getElementById("message").value.trim();
-            if (!messageContent) {
-                alert("Veuillez saisir un message pour créer un nouveau dialogue");
-                return;
-            }
-
-            stompClient.send("/app/chat.sendMessage", {}, JSON.stringify({
-                content: messageContent,
-                type: "CHAT"
-            }));
-
-            document.getElementById("message").value = "";
+            const token = document.getElementById("jwt").value.trim();
+            const topicVal = document.getElementById("topic").value.trim();
+            const messageVal = document.getElementById("message").value.trim();
+            pendingMessage = messageVal || null;
+            // Envoyer via WebSocket
+            stompClient.send("/app/chat.createDialog", {}, topicVal || "");
+            // Fallback REST après 1s si pas de réponse
+            setTimeout(() => {
+                if (!currentDialogId) {
+                    fetch(`http://localhost:8080/api/dialog?topic=${encodeURIComponent(topicVal)}`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': 'Bearer ' + token,
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(res => {
+                        if (!res.ok) {
+                            displayMessage(`[SYSTEM-REST] Échec création du salon (HTTP ${res.status})`);
+                            throw new Error('Création échouée');
+                        }
+                        return res.json();
+                    })
+                    .then(data => {
+                        currentDialogId = data.id;
+                        document.getElementById("current-dialog-id").textContent = currentDialogId;
+                        displayMessage(`[SYSTEM-REST] Salon créé : ${data.topic} (ID: ${data.id})`);
+                        subscribeDialogTopic();
+                        if (pendingMessage) {
+                            stompClient.send(
+                                "/app/chat.sendMessage",
+                                {},
+                                JSON.stringify({ dialogId: currentDialogId, content: pendingMessage, type: 'CHAT' })
+                            );
+                            pendingMessage = null;
+                        }
+                    })
+                    .catch(err => console.warn('REST fallback erreur :', err));
+                }
+            }, 1000);
+            // Conserver le topic pour réutilisation
         }
 
         function sendMessage() {
-            // Pour un client simple, sendMessage et createNewDialog font la même chose
-            // Un nouveau dialogue sera créé si aucun n'existe ou un message sera ajouté au dialogue existant
-            createNewDialog();
-        }
-
-        function replyToDialog() {
-            if (!stompClient) {
-                alert("Veuillez vous connecter d'abord");
+            if (!stompClient || !currentDialogId) {
+                alert("Créez un dialogue avant d'envoyer un message.");
                 return;
             }
-
-            if (!currentDialogId) {
-                alert("Aucun dialogue actif. Créez un nouveau dialogue d'abord.");
+            const content = document.getElementById("message").value.trim();
+            if (!content) {
+                alert("Veuillez saisir un message.");
                 return;
             }
-
-            const messageContent = document.getElementById("message").value.trim();
-            if (!messageContent) {
-                alert("Veuillez saisir un message pour répondre");
-                return;
-            }
-
-            stompClient.send("/app/chat.reply", {}, JSON.stringify({
-                content: messageContent,
-                dialogId: currentDialogId,
-                type: "CHAT"
-            }));
-
-            document.getElementById("message").value = "";
+            stompClient.send(
+                "/app/chat.sendMessage",
+                {},
+                JSON.stringify({ dialogId: currentDialogId, content: content, type: 'CHAT' })
+            );
+            document.getElementById("message").value = '';
         }
 
         function closeDialog() {
-            if (!stompClient) {
-                alert("Veuillez vous connecter d'abord");
-                return;
-            }
-
-            if (!currentDialogId) {
+            if (!stompClient || !currentDialogId) {
                 alert("Aucun dialogue actif à fermer.");
                 return;
             }
-
-            stompClient.send("/app/chat.disconnect", {}, JSON.stringify({
-                dialogId: currentDialogId,
-                type: "LEAVE"
-            }));
-
+            stompClient.send(
+                "/app/chat.disconnect",
+                {},
+                JSON.stringify({ dialogId: currentDialogId, type: 'LEAVE' })
+            );
             displayMessage(`Demande de fermeture du dialogue ${currentDialogId} envoyée`);
         }
 
         function displayMessage(text) {
             const li = document.createElement("li");
             li.textContent = text;
-            const messagesUl = document.getElementById("messages");
-            messagesUl.appendChild(li);
-            // Défiler vers le dernier message
-            messagesUl.scrollTop = messagesUl.scrollHeight;
+            document.getElementById("messages").appendChild(li);
         }
     </script>
 </body>

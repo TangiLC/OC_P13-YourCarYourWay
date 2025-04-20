@@ -50,6 +50,7 @@ public class Dialog {
   )
   @JsonManagedReference
   @EqualsAndHashCode.Exclude
+  @Builder.Default
   private Set<UserProfile> participants = new HashSet<>();
 
   @OneToMany(

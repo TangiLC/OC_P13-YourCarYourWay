@@ -27,7 +27,10 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/dialog")
 @RequiredArgsConstructor
-@Tag(name = "Chat API", description = "API pour le chat avec parallèle WebSocket")
+@Tag(
+  name = "Chat API",
+  description = "API pour le chat avec parallèle WebSocket"
+)
 public class RestChatController {
 
   private final DialogService dialogService;
@@ -63,7 +66,7 @@ public class RestChatController {
     Authentication authentication
   ) {
     UserPrincipal user = (UserPrincipal) authentication.getPrincipal();
-    Dialog dialog = dialogService.createDialog(topic);
+    Dialog dialog = dialogService.createDialog(topic, user.getId());
 
     DialogResponseDTO response = new DialogResponseDTO(
       dialog.getId(),
@@ -117,7 +120,7 @@ public class RestChatController {
     Long senderId = user.getId();
     String content = body.get("content");
 
-    ChatMessage saved = dialogService.sendMessage(dialogId, senderId, content);
+    ChatMessage saved = dialogService.sendMessage(dialogId, senderId, content, user.isClient());
     ChatMessageDTO chatMessageDto = new ChatMessageDTO(
       saved.getId(),
       saved.getContent(),
