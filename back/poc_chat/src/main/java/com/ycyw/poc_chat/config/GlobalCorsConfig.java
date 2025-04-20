@@ -15,7 +15,7 @@ public class GlobalCorsConfig implements WebMvcConfigurer {
   public void addCorsMappings(CorsRegistry registry) {
     registry
       .addMapping("/ws/**")
-      .allowedOriginPatterns("*") // ou liste précise des origins (ex : http://localhost:5500)
+      .allowedOriginPatterns("*") 
       .allowedMethods("GET", "POST", "OPTIONS")
       .allowedHeaders("*")
       .allowCredentials(true);
@@ -24,6 +24,21 @@ public class GlobalCorsConfig implements WebMvcConfigurer {
       .addMapping("/ws/info/**")
       .allowedOriginPatterns("*")
       .allowedMethods("GET", "POST", "OPTIONS")
+      .allowedHeaders("*")
+      .allowCredentials(true);
+
+      registry
+      .addMapping("/api/**")
+      .allowedOriginPatterns("http://localhost:4200")  
+      .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+      .allowedHeaders("*")
+      .allowCredentials(true);
+      
+    // Configuration générale pour tous les autres endpoints
+    registry
+      .addMapping("/auth/**")
+      .allowedOriginPatterns("http://localhost:4200")
+      .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
       .allowedHeaders("*")
       .allowCredentials(true);
   }
