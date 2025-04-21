@@ -1,0 +1,25 @@
+.dialog-box {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+mat-list {
+  flex: 1 1 auto;
+  overflow: auto;
+}
+
+.input-group {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.system-msg {
+  font-style: italic;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.chat-msg {
+  color: #000;
+}

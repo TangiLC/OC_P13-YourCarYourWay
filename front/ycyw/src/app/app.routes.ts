@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { AuthGuard } from './security/auth.guard';
 
 export const appRoutes: Routes = [
   {
@@ -11,7 +12,12 @@ export const appRoutes: Routes = [
     loadComponent: () =>
       import('./pages/login/login.component').then((m) => m.LoginComponent),
   },
-  // Ajoutez ici d'autres routes lazy-loaded
+   {
+    path: 'home',
+    loadComponent: () =>
+      import('./pages/home/home.component').then((m) => m.HomeComponent),
+    canActivate: [AuthGuard]
+  },
   {
     path: '**',
     redirectTo: 'login',

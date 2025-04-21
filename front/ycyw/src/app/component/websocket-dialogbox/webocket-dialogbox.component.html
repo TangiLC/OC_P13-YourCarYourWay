@@ -1,0 +1,40 @@
+<div class="dialog-box">
+  <!-- Indicateur d'état de connexion -->
+  <div *ngIf="!isConnected" class="connection-status">
+    <mat-icon color="warn">cloud_off</mat-icon>
+    <span>Connexion en cours...</span>
+  </div>
+
+  <!-- Message d'erreur -->
+  <div *ngIf="connectionError" class="error-message">
+    <mat-icon color="warn">error</mat-icon>
+    <span>{{ connectionError }}</span>
+  </div>
+
+  <mat-list>
+    <mat-list-item *ngFor="let msg of messages">
+      <span [ngClass]="msg.type === 'CHAT' ? 'chat-msg' : 'system-msg'">
+        {{ formatMessage(msg) }}
+      </span>
+    </mat-list-item>
+  </mat-list>
+
+  <div class="topic-group">
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Nouvelle conversation : topic</mat-label>
+      <input matInput placeholder="Titre du topic" [(ngModel)]="topicInput" (keyup.enter)="createNewDialog()" />
+    </mat-form-field>
+    <button mat-raised-button color="accent" [disabled]="!isConnected" (click)="createNewDialog()">
+      <mat-icon>add_comment</mat-icon> Créer
+    </button>
+  </div>
+
+  <div class="input-group">
+    <input matInput placeholder="Entrez un message..." [(ngModel)]="newMessage" (keyup.enter)="sendMessage()"
+      [disabled]="!isConnected || !dialogId" />
+    <button mat-icon-button color="primary" (click)="sendMessage()" aria-label="Envoyer"
+      [disabled]="!isConnected || !dialogId">
+      <mat-icon>send</mat-icon>
+    </button>
+  </div>
+</div>

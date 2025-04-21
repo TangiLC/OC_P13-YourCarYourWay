@@ -1,14 +1,16 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { environment } from '../../../environments/environment';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-login',
@@ -22,12 +24,18 @@ import { environment } from '../../../environments/environment';
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
+    MatSnackBarModule,
   ],
 })
 export class LoginComponent {
   loginForm: FormGroup;
 
-  constructor(private fb: FormBuilder, private http: HttpClient) {
+  constructor(
+    private fb: FormBuilder,
+    private http: HttpClient,
+    private router: Router,
+    private snackBar: MatSnackBar
+  ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required]],
@@ -41,12 +49,18 @@ export class LoginComponent {
 
       this.http.post<{ token: string }>(url, { email, password }).subscribe({
         next: (response) => {
-          console.log('Authentification réussie, token:', response.token);
-          // TODO: stocker le token (localStorage, service d'auth...), naviguer
+          localStorage.setItem('jwtToken', response.token);
+          this.router.navigate(['/home']);
         },
         error: (err) => {
-          console.error("Erreur d'authentification", err);
-          // TODO: afficher un message d'erreur à l'utilisateur
+          const message =
+            err.error?.message ||
+            "Erreur d'authentification, veuillez réessayer.";
+          this.snackBar.open(message, '', {
+            duration: 3000,
+            horizontalPosition: 'center',
+          });
+          this.loginForm.reset({ email: '', password: '' });
         },
       });
     }
