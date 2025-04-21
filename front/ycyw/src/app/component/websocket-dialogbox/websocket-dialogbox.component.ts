@@ -1,4 +1,10 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  SimpleChanges,
+  Input,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatListModule } from '@angular/material/list';
@@ -29,12 +35,12 @@ interface ChatMessage {
     MatButtonModule,
     MatIconModule,
   ],
-  templateUrl: './webocket-dialogbox.component.html',
-  styleUrls: ['./webocket-dialogbox.component.scss'],
+  templateUrl: './websocket-dialogbox.component.html',
+  styleUrls: ['./websocket-dialogbox.component.scss'],
 })
 export class WebsocketDialogboxComponent implements OnInit, OnDestroy {
   topicInput = '';
-  dialogId: string | null = null;
+  @Input() dialogId: number | null = null;
   isConnected = false;
   connectionError: string | null = null;
   messages: ChatMessage[] = [];
@@ -51,6 +57,16 @@ export class WebsocketDialogboxComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.initWebsocket();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['dialogId'] && this.dialogId && this.isConnected) {
+      const prevId = changes['dialogId'].previousValue;
+      if (prevId !== this.dialogId) {
+        this.resetMessages();
+        this.subscribeToDialog();
+      }
+    }
   }
 
   ngOnDestroy() {
@@ -75,14 +91,14 @@ export class WebsocketDialogboxComponent implements OnInit, OnDestroy {
     });
 
     this.client.stompErrors$.subscribe((frame) => {
-      this.connectionError = `Erreur STOMP : ${frame.headers['message']}`;
-      console.error('Erreur STOMP :', frame);
+      this.connectionError = `Erreur STOMP: ${frame.headers['message']}`;
+      console.error('Erreur STOMP:', frame);
       this.isConnected = false;
     });
 
     this.client.webSocketErrors$.subscribe((event) => {
       this.connectionError = 'Erreur de connexion WebSocket';
-      console.error('Erreur WebSocket :', event);
+      console.error('Erreur WebSocket:', event);
       this.isConnected = false;
     });
   }
@@ -99,7 +115,7 @@ export class WebsocketDialogboxComponent implements OnInit, OnDestroy {
           this.resetMessages();
           this.subscribeToDialog();
         } catch (e) {
-          console.error('Erreur parsing dialog-created :', e);
+          console.error('Erreur parsing dialog-created:', e);
         }
       });
   }
@@ -128,8 +144,8 @@ export class WebsocketDialogboxComponent implements OnInit, OnDestroy {
       try {
         this.client.publish(msg);
       } catch (error) {
-        console.error("Erreur d'envoi :", error);
-        this.connectionError = `Erreur d'envoi : ${error}`;
+        console.error("Erreur d'envoi:", error);
+        this.connectionError = `Erreur d'envoi: ${error}`;
       }
     } else {
       console.log("Connection non dispo, message mis en file d'attente.", msg);
@@ -147,7 +163,7 @@ export class WebsocketDialogboxComponent implements OnInit, OnDestroy {
           const msg: ChatMessage = JSON.parse(message.body);
           this.messages.push(msg);
         } catch (e) {
-          console.error('Erreur parsing message :', e);
+          console.error('Erreur parsing message:', e);
         }
       });
   }

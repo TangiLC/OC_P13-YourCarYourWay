@@ -1,0 +1,9 @@
+<div *ngIf="dialogs.length === 0">
+  <p>Aucun dialogue trouvé.</p>
+</div>
+
+<div *ngFor="let dialog of dialogs">
+  <button mat-button (click)="selectDialog(dialog.id)">
+    {{ dialog.topic || 'Dialogue ' + dialog.id }}
+  </button>
+</div>

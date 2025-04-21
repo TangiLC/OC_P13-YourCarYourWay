@@ -8,5 +8,10 @@
 <div class="cards-container">
   <app-generic-card></app-generic-card>
   <app-generic-card></app-generic-card>
-  <app-websocket-dialogbox ></app-websocket-dialogbox>
+
+  <app-dialog-history *ngIf="user" [senderId]="user.id" (dialogSelected)="onDialogSelected($event)">
+  </app-dialog-history>
+
+  <app-websocket-dialogbox [dialogId]="currentDialogId">
+  </app-websocket-dialogbox>
 </div>
