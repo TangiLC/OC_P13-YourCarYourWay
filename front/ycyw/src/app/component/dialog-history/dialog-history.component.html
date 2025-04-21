@@ -1,9 +1,21 @@
+<h2>Vos derniers dialogues</h2>
 <div *ngIf="dialogs.length === 0">
   <p>Aucun dialogue trouvé.</p>
 </div>
 
 <div *ngFor="let dialog of dialogs">
-  <button mat-button (click)="selectDialog(dialog.id)">
+  <button mat-raised-button (click)="selectDialog(dialog.id)">
     {{ dialog.topic || 'Dialogue ' + dialog.id }}
+  </button>
+</div>
+
+<div class="topic-group">
+  <h2>Nouvelle conversation </h2>
+  <mat-form-field appearance="fill" class="full-width">
+    <mat-label>thème</mat-label>
+    <input matInput placeholder="Titre du topic" [(ngModel)]="topicInput" (keyup.enter)="createNewDialog()" />
+  </mat-form-field>
+  <button mat-raised-button color="accent" [disabled]="!isConnected" (click)="createNewDialog()">
+    <mat-icon>add_comment</mat-icon> Créer
   </button>
 </div>

@@ -170,7 +170,6 @@ public class RestChatController {
     Authentication authentication
   ) {
     dialogService.closeDialog(dialogId);
-    // Notification WebSocket de fermeture
     messagingTemplate.convertAndSend(
       "/topic/dialog/" + dialogId,
       Map.of("type", "CLOSE", "dialogId", dialogId)

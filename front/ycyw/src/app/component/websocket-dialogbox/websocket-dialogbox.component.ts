@@ -16,12 +16,10 @@ import { IMessage } from '@stomp/stompjs';
 import { RxStomp } from '@stomp/rx-stomp';
 import { myRxStompConfig } from '../../rx-stomp.config';
 import { Subscription } from 'rxjs';
-
-interface ChatMessage {
-  sender?: string;
-  content: string;
-  type: string;
-}
+import { DialogService } from '../../services/dialog.service';
+import { WebsocketService } from '../../services/websocket.service';
+import { DialogDTO, ChatMessageDTO, UserProfileDTO } from '../../dto';
+import { UserService } from '../../services/user.service';
 
 @Component({
   selector: 'app-websocket-dialogbox',
@@ -29,42 +27,64 @@ interface ChatMessage {
   imports: [
     CommonModule,
     FormsModule,
-    MatFormFieldModule,
     MatListModule,
     MatInputModule,
     MatButtonModule,
     MatIconModule,
+    MatFormFieldModule,
   ],
   templateUrl: './websocket-dialogbox.component.html',
   styleUrls: ['./websocket-dialogbox.component.scss'],
 })
 export class WebsocketDialogboxComponent implements OnInit, OnDestroy {
-  topicInput = '';
   @Input() dialogId: number | null = null;
+
+  currentDialog: DialogDTO | null = null;
   isConnected = false;
   connectionError: string | null = null;
-  messages: ChatMessage[] = [];
+  messages: ChatMessageDTO[] = [];
   newMessage = '';
+  currentUser: UserProfileDTO | null = null;
+
   private messageQueue: { destination: string; body: any }[] = [];
   private client: RxStomp;
   private subscription: Subscription | null = null;
   private dialogCreatedSub: Subscription | null = null;
+  private dialogSub: Subscription | null = null;
 
-  constructor() {
+  constructor(
+    private dialogService: DialogService,
+    private websocketService: WebsocketService,
+    private userService: UserService
+  ) {
     this.client = new RxStomp();
     this.client.configure(myRxStompConfig);
   }
 
   ngOnInit() {
     this.initWebsocket();
+    this.currentUser = this.userService.getCurrentUser();
+
+    if (!this.currentUser) {
+      this.userService.user$.subscribe((user) => {
+        this.currentUser = user;
+      });
+    }
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['dialogId'] && this.dialogId && this.isConnected) {
-      const prevId = changes['dialogId'].previousValue;
-      if (prevId !== this.dialogId) {
+    if (changes['dialogId']) {
+      if (this.dialogId && this.isConnected) {
         this.resetMessages();
         this.subscribeToDialog();
+        this.loadDialogInfo();
+      } else if (this.dialogId === null) {
+        this.currentDialog = null;
+        this.resetMessages();
+        if (this.subscription) {
+          this.subscription.unsubscribe();
+          this.subscription = null;
+        }
       }
     }
   }
@@ -73,16 +93,52 @@ export class WebsocketDialogboxComponent implements OnInit, OnDestroy {
     this.disconnect();
   }
 
+  loadDialogInfo(): void {
+    if (!this.dialogId) return;
+
+    this.dialogSub?.unsubscribe();
+    this.dialogSub = this.dialogService.getDialogById(this.dialogId).subscribe({
+      next: (dialog) => {
+        this.currentDialog = dialog;
+        if (dialog.messages && dialog.messages.length > 0) {
+          console.log('***DIALOG***', dialog);
+          this.resetMessages();
+
+          const chatMessages: ChatMessageDTO[] = dialog.messages;
+
+          chatMessages.sort((a, b) => {
+            const timeA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+            const timeB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+            return timeA - timeB;
+          });
+
+          this.messages = chatMessages;
+        }
+      },
+      error: (err) => {
+        console.error(
+          'Erreur lors du chargement des informations du dialogue',
+          err
+        );
+        this.currentDialog = null;
+      },
+    });
+  }
+
   private initWebsocket() {
     this.client.activate();
 
     this.client.connected$.subscribe(() => {
       this.isConnected = true;
       this.connectionError = null;
+      this.websocketService.updateConnectionStatus(true);
       console.log('WebSocket connecté');
 
       this.subscribeToDialogCreated();
-      this.subscribeToDialog();
+      if (this.dialogId) {
+        this.subscribeToDialog();
+        this.loadDialogInfo();
+      }
 
       while (this.messageQueue.length) {
         const msg = this.messageQueue.shift()!;
@@ -94,12 +150,14 @@ export class WebsocketDialogboxComponent implements OnInit, OnDestroy {
       this.connectionError = `Erreur STOMP: ${frame.headers['message']}`;
       console.error('Erreur STOMP:', frame);
       this.isConnected = false;
+      this.websocketService.updateConnectionStatus(false);
     });
 
     this.client.webSocketErrors$.subscribe((event) => {
       this.connectionError = 'Erreur de connexion WebSocket';
       console.error('Erreur WebSocket:', event);
       this.isConnected = false;
+      this.websocketService.updateConnectionStatus(false);
     });
   }
 
@@ -111,24 +169,18 @@ export class WebsocketDialogboxComponent implements OnInit, OnDestroy {
         try {
           const payload = JSON.parse(message.body);
           this.dialogId = payload.id;
-          this.topicInput = '';
+          this.currentDialog = payload;
           this.resetMessages();
           this.subscribeToDialog();
+          this.dialogService.triggerDialogRefresh();
         } catch (e) {
           console.error('Erreur parsing dialog-created:', e);
         }
       });
   }
 
-  createNewDialog() {
-    if (!this.topicInput.trim()) return;
-    this.resetMessages();
-    this.sendOrQueue('/app/chat.createDialog', this.topicInput.trim());
-    this.topicInput = '';
-  }
-
   sendMessage() {
-    if (!this.newMessage.trim()) return;
+    if (!this.newMessage.trim() || !this.dialogId) return;
     const payload = JSON.stringify({
       dialogId: this.dialogId,
       content: this.newMessage.trim(),
@@ -160,8 +212,14 @@ export class WebsocketDialogboxComponent implements OnInit, OnDestroy {
       .watch(`/topic/dialog/${this.dialogId}`)
       .subscribe((message: IMessage) => {
         try {
-          const msg: ChatMessage = JSON.parse(message.body);
+          const msg: ChatMessageDTO = JSON.parse(message.body);
           this.messages.push(msg);
+
+          this.messages.sort((a, b) => {
+            const timeA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+            const timeB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+            return timeA - timeB;
+          });
         } catch (e) {
           console.error('Erreur parsing message:', e);
         }
@@ -175,21 +233,32 @@ export class WebsocketDialogboxComponent implements OnInit, OnDestroy {
   private disconnect() {
     this.subscription?.unsubscribe();
     this.dialogCreatedSub?.unsubscribe();
+    this.dialogSub?.unsubscribe();
     this.client.deactivate();
     this.isConnected = false;
+    this.websocketService.updateConnectionStatus(false);
   }
 
-  formatMessage(msg: ChatMessage): string {
+  formatMessage(msg: ChatMessageDTO): string {
     switch (msg.type) {
       case 'JOIN':
         return `[CONNEXION] ${msg.sender}`;
       case 'LEAVE':
         return `[DÉCONNEXION] ${msg.sender}`;
-      case 'WARNING':
-      case 'INFO':
-        return `[ALERTE] ${msg.content}`;
       default:
         return `${msg.sender}: ${msg.content}`;
     }
+  }
+
+  getSenderName(senderId: string | undefined): string {
+    if (!senderId || !this.currentDialog || !this.currentDialog.participants) {
+      return 'Inconnu';
+    }
+    const id = parseInt(senderId, 10);
+    if (isNaN(id)) return senderId;
+    const participant = this.currentDialog.participants.find(
+      (p) => p.id === id
+    );
+    return participant ? participant.firstName : 'Utilisateur ' + senderId;
   }
 }

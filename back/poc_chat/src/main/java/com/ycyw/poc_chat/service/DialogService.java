@@ -1,5 +1,7 @@
 package com.ycyw.poc_chat.service;
 
+import com.ycyw.poc_chat.dto.DialogDTO;
+import com.ycyw.poc_chat.mapper.DialogMapper;
 import com.ycyw.poc_chat.model.*;
 import com.ycyw.poc_chat.repository.*;
 import jakarta.persistence.EntityNotFoundException;
@@ -21,6 +23,7 @@ public class DialogService {
   private final UserProfileRepository userProfileRepository;
   private final ChatMessageRepository messageRepository;
   private final SimpMessagingTemplate messagingTemplate;
+  private final DialogMapper dialogMapper;
 
   /**
 +   * Crée un nouveau dialogue pour un utilisateur donné.
@@ -62,7 +65,12 @@ public class DialogService {
     UserProfile clientProfile = UserProfile.builder().id(requesterId).build();
     dialog.getParticipants().add(clientProfile);
 
-    return dialogRepository.save(dialog);
+    Dialog savedDialog = dialogRepository.save(dialog);
+    //DialogDTO dialogDto = dialogMapper.toDialogDTO(savedDialog);
+
+    messagingTemplate.convertAndSend("/topic/dialogs/new", "NEW");
+
+    return savedDialog;
   }
 
   /**

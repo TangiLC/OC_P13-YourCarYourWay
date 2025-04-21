@@ -30,7 +30,6 @@ public class JwtTokenProvider {
       "${jwt.expiration-ms}"
     ) long jwtExpirationMs
   ) {
-    // Crée une clé HMAC à partir de la chaîne de caractères
     this.secretKey =
       Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     this.jwtExpirationMs = jwtExpirationMs;
@@ -122,20 +121,19 @@ public class JwtTokenProvider {
         .parseClaimsJws(token);
       return true;
     } catch (JwtException | IllegalArgumentException ex) {
-      // Ici on peut logger la raison de l'échec : ex.getMessage()
       return false;
     }
   }
 
   public UserPrincipal getUserPrincipal(String token) {
     Long userId = getUserIdFromToken(token);
-    String email = getEmailFromToken(token); // nécessite que tu aies stocké "email" dans le token
+    String email = getEmailFromToken(token); 
     String role = getRoleFromToken(token);
 
     return new UserPrincipal(
       userId,
       email,
-      null, // Mot de passe inutile ici (non utilisé dans contexte WebSocket)
+      null, 
       Collections.singleton(new SimpleGrantedAuthority("ROLE_" + role))
     );
   }

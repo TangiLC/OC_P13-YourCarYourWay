@@ -16,7 +16,6 @@ export class AuthInterceptor implements HttpInterceptor {
     const token = localStorage.getItem('jwtToken');
 
     if (token) {
-      console.log('[AuthInterceptor] Token détecté ✅');
       const authReq = req.clone({
         setHeaders: {
           Authorization: `Bearer ${token}`,
@@ -25,7 +24,6 @@ export class AuthInterceptor implements HttpInterceptor {
       return next.handle(authReq);
     }
 
-    console.warn('[AuthInterceptor] Aucun token trouvé ❌');
     return next.handle(req);
   }
 }

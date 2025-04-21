@@ -1,4 +1,3 @@
-// DialogMapper.java
 package com.ycyw.poc_chat.mapper;
 
 import com.ycyw.poc_chat.dto.DialogDTO;

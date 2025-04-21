@@ -10,6 +10,7 @@ import { DialogHistoryComponent } from '../../component/dialog-history/dialog-hi
 import { WebsocketDialogboxComponent } from '../../component/websocket-dialogbox/websocket-dialogbox.component';
 
 import { UserService } from '../../services/user.service';
+import { WebsocketService } from '../../services/websocket.service';
 import { UserProfileDTO } from '../../dto';
 
 @Component({
@@ -34,7 +35,10 @@ export class HomeComponent implements OnInit {
   user: UserProfileDTO | null = null;
   currentDialogId: number | null = null;
 
-  constructor(private userService: UserService) {}
+  constructor(
+    private userService: UserService,
+    private websocketService: WebsocketService
+  ) {}
 
   ngOnInit(): void {
     this.userService.fetchAndStoreCurrentUser().subscribe({
@@ -52,5 +56,9 @@ export class HomeComponent implements OnInit {
 
   onDialogSelected(dialogId: number) {
     this.currentDialogId = dialogId;
+  }
+
+  onDialogCreated(topic: string) {
+    console.log('Un nouveau dialogue va être créé avec le topic:', topic);
   }
 }

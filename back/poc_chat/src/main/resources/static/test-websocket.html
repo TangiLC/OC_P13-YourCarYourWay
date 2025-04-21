@@ -75,7 +75,7 @@
 
         function onConnect(frame) {
             displayMessage("✅ Connecté : " + frame);
-            // Souscription pour la création de dialogue
+            
             stompClient.subscribe('/user/queue/dialog-created', function (message) {
                 const payload = JSON.parse(message.body);
                 currentDialogId = payload.id;

@@ -1,26 +1,52 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnInit,
+  Output,
+  OnDestroy,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
-import { catchError } from 'rxjs/operators';
-import { of } from 'rxjs';
-
-import { DialogDTO, ChatMessageDTO } from '../../dto';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { FormsModule } from '@angular/forms';
+import { DialogDTO } from '../../dto';
+import { DialogService } from '../../services/dialog.service';
+import { Subscription } from 'rxjs';
+import { IMessage } from '@stomp/rx-stomp';
+import { WebsocketService } from '../../services/websocket.service';
 
 @Component({
   selector: 'app-dialog-history',
   standalone: true,
-  imports: [CommonModule, HttpClientModule, MatButtonModule],
+  imports: [
+    CommonModule,
+    MatButtonModule,
+    MatInputModule,
+    MatFormFieldModule,
+    MatIconModule,
+    FormsModule
+  ],
   templateUrl: './dialog-history.component.html',
   styleUrls: ['./dialog-history.component.scss'],
 })
-export class DialogHistoryComponent implements OnInit {
+export class DialogHistoryComponent implements OnInit, OnDestroy {
   @Input() senderId!: number;
   @Output() dialogSelected = new EventEmitter<number>();
+  @Output() dialogCreated = new EventEmitter<string>(); // Émettre le topic pour créer un dialogue
 
+  topicInput = '';
+  isConnected = false; // Pour savoir si le websocket est connecté
   dialogs: DialogDTO[] = [];
+  private refreshSub: Subscription | null = null;
+  private connectionSub: Subscription | null = null;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private dialogService: DialogService,
+    private websocketService: WebsocketService
+  ) {}
 
   ngOnInit(): void {
     if (!this.senderId) {
@@ -28,20 +54,40 @@ export class DialogHistoryComponent implements OnInit {
       return;
     }
 
-    this.http
-      .get<DialogDTO[]>(`/api/dialog/sender/${this.senderId}`)
-      .pipe(
-        catchError((err) => {
-          console.error('Erreur de récupération des dialogues', err);
-          return of([]);
-        })
-      )
-      .subscribe((data) => {
-        this.dialogs = data;
-      });
+    this.loadDialogs();
+
+    this.refreshSub = this.dialogService.onDialogRefresh().subscribe(() => {
+      this.loadDialogs();
+    });
+
+    // S'abonner à l'état de connexion du websocket
+    this.connectionSub = this.websocketService.connectionStatus$.subscribe(status => {
+      this.isConnected = status;
+    });
   }
 
-  selectDialog(id: number) {
+  ngOnDestroy(): void {
+    this.refreshSub?.unsubscribe();
+    this.connectionSub?.unsubscribe();
+  }
+
+  loadDialogs(): void {
+    this.dialogService.getDialogsBySender(this.senderId).subscribe({
+      next: (data) => (this.dialogs = data),
+      error: (err) => {
+        console.error('Erreur de récupération des dialogues', err);
+        this.dialogs = [];
+      },
+    });
+  }
+
+  selectDialog(id: number): void {
     this.dialogSelected.emit(id);
+  }
+
+  createNewDialog(): void {
+    if (!this.topicInput.trim()) return;
+    this.dialogCreated.emit(this.topicInput.trim());
+    this.topicInput = '';
   }
 }

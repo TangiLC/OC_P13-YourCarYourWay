@@ -1,9 +1,11 @@
 import { RxStompConfig } from '@stomp/rx-stomp';
 import SockJS from 'sockjs-client';
 
+import { environment } from '../environments/environment';
+
 export const myRxStompConfig: RxStompConfig = {
   brokerURL: undefined,
-  webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
+  webSocketFactory: () => new SockJS(`${environment.apiUrl}/ws`),
   connectHeaders: {
     Authorization: 'Bearer ' + localStorage.getItem('jwtToken') || '',
   },
