@@ -52,14 +52,12 @@ public class DialogLifecycleManager {
         dialog.setStatus(DialogStatus.CLOSED);
         dialog.setClosedAt(LocalDateTime.now());
         dialogRepository.save(dialog);
-
-        System.out.println("Tentative d'envoi : CLOSED");
         messagingTemplate.convertAndSend(
           "/topic/dialog/" + dialogId,
           Map.of("type", "CLOSE", "dialogId", dialogId)
         );
+        messagingTemplate.convertAndSend("/topic/dialogs/update", "CLOSED");
       }
-      messagingTemplate.convertAndSend("/topic/dialogs/update", "CLOSED");
     }
   }
 
