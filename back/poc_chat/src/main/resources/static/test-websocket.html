@@ -82,7 +82,6 @@
                 document.getElementById("current-dialog-id").textContent = currentDialogId;
                 displayMessage(`[SYSTEM] Salon créé : ${payload.topic} (ID: ${payload.id})`);
                 subscribeDialogTopic();
-                // Envoyer message initial si défini
                 if (pendingMessage) {
                     stompClient.send(
                         "/app/chat.sendMessage",
@@ -129,9 +128,9 @@
             const topicVal = document.getElementById("topic").value.trim();
             const messageVal = document.getElementById("message").value.trim();
             pendingMessage = messageVal || null;
-            // Envoyer via WebSocket
+           
             stompClient.send("/app/chat.createDialog", {}, topicVal || "");
-            // Fallback REST après 1s si pas de réponse
+           
             setTimeout(() => {
                 if (!currentDialogId) {
                     fetch(`http://localhost:8080/api/dialog?topic=${encodeURIComponent(topicVal)}`, {
@@ -165,7 +164,6 @@
                     .catch(err => console.warn('REST fallback erreur :', err));
                 }
             }, 1000);
-            // Conserver le topic pour réutilisation
         }
 
         function sendMessage() {

@@ -50,9 +50,7 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
               );
               accessor.setUser(auth);
             }
-          } catch (Exception ex) {
-            // Optionnel : log.error("JWT validation failed", ex);
-          }
+          } catch (Exception ex) {}
         }
       }
     }

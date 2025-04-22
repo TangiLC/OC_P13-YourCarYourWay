@@ -63,7 +63,7 @@ public class SecurityConfig {
     source.registerCorsConfiguration("/ws/**", config);
     source.registerCorsConfiguration("/auth/**", config);
     source.registerCorsConfiguration("/api/**", config);
-    //source.registerCorsConfiguration("/ws/info/**", config);
+
     return source;
   }
 

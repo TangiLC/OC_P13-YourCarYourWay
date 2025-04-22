@@ -62,8 +62,6 @@ public class DialogService {
 
     Dialog savedDialog = dialogRepository.save(dialog);
 
-    messagingTemplate.convertAndSend("/topic/dialogs/update", "NEW");
-
     return savedDialog;
   }
 
@@ -81,7 +79,6 @@ public class DialogService {
     Long senderId,
     String content,
     boolean isClient
-    
   ) {
     UserProfile senderProfile;
     Dialog dialog = dialogRepository
@@ -91,7 +88,6 @@ public class DialogService {
     if (isClient) {
       if (dialog.getStatus() == DialogStatus.CLOSED) {
         dialog.setStatus(DialogStatus.PENDING);
-        messagingTemplate.convertAndSend("/topic/dialogs/update", "PENDING");
         dialog.setClosedAt(null);
       }
       senderProfile = UserProfile.builder().id(senderId).build();
@@ -99,7 +95,6 @@ public class DialogService {
       senderProfile = userProfileRepository.getReferenceById(senderId);
       if (dialog.getStatus() == DialogStatus.PENDING) {
         dialog.setStatus(DialogStatus.OPEN);
-        messagingTemplate.convertAndSend("/topic/dialogs/update", "OPEN");
       }
     }
 
@@ -140,7 +135,6 @@ public class DialogService {
       throw new RuntimeException("Dialog already closed");
     }
     dialog.setStatus(DialogStatus.CLOSED);
-    messagingTemplate.convertAndSend("/topic/dialogs/update", "CLOSED");
     dialog.setClosedAt(LocalDateTime.now());
 
     return dialogRepository.save(dialog);

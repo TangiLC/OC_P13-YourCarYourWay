@@ -143,6 +143,8 @@ export class WebsocketDialogboxComponent implements OnInit, OnDestroy {
       this.websocketService.updateConnectionStatus(true);
       console.log('WebSocket connecté');
 
+      this.subscribeToUpdateChannel();
+
       this.subscribeToDialogCreated();
       if (this.dialogId) {
         this.subscribeToDialog();
@@ -261,6 +263,31 @@ export class WebsocketDialogboxComponent implements OnInit, OnDestroy {
       this.subscription = null;
     }
     this.dialogService.triggerDialogRefresh();
+  }
+
+  subscribeToUpdateChannel() {
+    const validStatuses = ['NEW', 'PENDING', 'OPENED', 'CLOSED'];
+
+    this.client
+      .watch('/topic/dialogs/update')
+      .subscribe((message: IMessage) => {
+        try {
+          if (!message.body.startsWith('{')) {
+            if (validStatuses.includes(message.body)) {
+              console.log('REFRESH LIST');
+              this.dialogService.triggerDialogRefresh();
+            }
+            return;
+          }
+          const payload = JSON.parse(message.body);
+          if (validStatuses.includes(payload.event)) {
+            console.log('REFRESH LIST');
+            this.dialogService.triggerDialogRefresh();
+          }
+        } catch (e) {
+          console.error('Erreur parsing message STOMP:', e);
+        }
+      });
   }
 
   private disconnect() {

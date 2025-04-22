@@ -1,4 +1,3 @@
-// src/app/utils/dialog-utils.ts
 
 export function extractDialogTitle(topic: string | undefined | null): string {
   return topic?.split('.@')[0] ?? 'No Title';

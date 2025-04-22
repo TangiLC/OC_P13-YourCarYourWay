@@ -34,7 +34,6 @@ public class GlobalCorsConfig implements WebMvcConfigurer {
       .allowedHeaders("*")
       .allowCredentials(true);
       
-    // Configuration générale pour tous les autres endpoints
     registry
       .addMapping("/auth/**")
       .allowedOriginPatterns("http://localhost:4200")

@@ -37,8 +37,9 @@ public class DialogLifecycleManager {
     if (dialog.getStatus() == DialogStatus.PENDING && sessions.size() > 1) {
       dialog.setStatus(DialogStatus.OPEN);
       dialogRepository.save(dialog);
-      messagingTemplate.convertAndSend("/topic/dialogs/update", "OPEN");
+      System.out.println("Tentative d'envoi : OPEN");
     }
+    messagingTemplate.convertAndSend("/topic/dialogs/update", "OPEN");
   }
 
   public void userLeft(Long dialogId, String username) {
@@ -51,12 +52,14 @@ public class DialogLifecycleManager {
         dialog.setStatus(DialogStatus.CLOSED);
         dialog.setClosedAt(LocalDateTime.now());
         dialogRepository.save(dialog);
-        messagingTemplate.convertAndSend("/topic/dialogs/update", "CLOSED");
+
+        System.out.println("Tentative d'envoi : CLOSED");
         messagingTemplate.convertAndSend(
           "/topic/dialog/" + dialogId,
           Map.of("type", "CLOSE", "dialogId", dialogId)
         );
       }
+      messagingTemplate.convertAndSend("/topic/dialogs/update", "CLOSED");
     }
   }
 
@@ -65,12 +68,12 @@ public class DialogLifecycleManager {
 
     Dialog dialog = dialogRepository.findById(dialogId).orElseThrow();
 
-    if (dialog.getStatus() == DialogStatus.CLOSED && !sessions.isEmpty()) {
+    if (dialog.getStatus() == DialogStatus.CLOSED) {
       dialog.setStatus(DialogStatus.PENDING);
       dialog.setClosedAt(null);
       dialogRepository.save(dialog);
-      messagingTemplate.convertAndSend("/topic/dialogs/update", "PENDING");
     }
+    messagingTemplate.convertAndSend("/topic/dialogs/update", "PENDING");
   }
 
   /**
