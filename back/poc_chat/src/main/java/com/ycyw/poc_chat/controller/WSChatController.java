@@ -89,6 +89,7 @@ public class WSChatController {
           message.getContent(),
           user.isClient()
         );
+        lifecycleManager.messageSent(saved.getDialog().getId());
 
         message.setId(saved.getId());
         String destination = "/topic/dialog/" + message.getDialogId();

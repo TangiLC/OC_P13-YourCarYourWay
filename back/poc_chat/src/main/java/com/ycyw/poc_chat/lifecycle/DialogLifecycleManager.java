@@ -1,5 +1,6 @@
 package com.ycyw.poc_chat.lifecycle;
 
+import com.ycyw.poc_chat.model.Dialog;
 import com.ycyw.poc_chat.model.DialogStatus;
 import com.ycyw.poc_chat.repository.DialogRepository;
 import com.ycyw.poc_chat.service.DialogService;
@@ -26,22 +27,49 @@ public class DialogLifecycleManager {
   private final Set<Long> warnedDialogs = ConcurrentHashMap.newKeySet();
 
   public void userJoined(Long dialogId, String username) {
-    activeSessions
-      .computeIfAbsent(dialogId, id -> ConcurrentHashMap.newKeySet())
-      .add(username);
+    Set<String> sessions = activeSessions.computeIfAbsent(
+      dialogId,
+      id -> ConcurrentHashMap.newKeySet()
+    );
+    sessions.add(username);
+
+    Dialog dialog = dialogRepository.findById(dialogId).orElseThrow();
+    if (dialog.getStatus() == DialogStatus.PENDING && sessions.size() > 1) {
+      dialog.setStatus(DialogStatus.OPEN);
+      dialogRepository.save(dialog);
+      messagingTemplate.convertAndSend("/topic/dialogs/update", "OPEN");
+    }
   }
 
   public void userLeft(Long dialogId, String username) {
     Set<String> sessions = activeSessions.get(dialogId);
     if (sessions != null) {
       sessions.remove(username);
-      if (sessions.isEmpty()) {
-        dialogService.closeDialog(dialogId);
+
+      Dialog dialog = dialogRepository.findById(dialogId).orElseThrow();
+      if (dialog.getStatus() == DialogStatus.OPEN && sessions.size() < 2) {
+        dialog.setStatus(DialogStatus.CLOSED);
+        dialog.setClosedAt(LocalDateTime.now());
+        dialogRepository.save(dialog);
+        messagingTemplate.convertAndSend("/topic/dialogs/update", "CLOSED");
         messagingTemplate.convertAndSend(
           "/topic/dialog/" + dialogId,
           Map.of("type", "CLOSE", "dialogId", dialogId)
         );
       }
+    }
+  }
+
+  public void messageSent(Long dialogId) {
+    Set<String> sessions = activeSessions.getOrDefault(dialogId, Set.of());
+
+    Dialog dialog = dialogRepository.findById(dialogId).orElseThrow();
+
+    if (dialog.getStatus() == DialogStatus.CLOSED && !sessions.isEmpty()) {
+      dialog.setStatus(DialogStatus.PENDING);
+      dialog.setClosedAt(null);
+      dialogRepository.save(dialog);
+      messagingTemplate.convertAndSend("/topic/dialogs/update", "PENDING");
     }
   }
 
