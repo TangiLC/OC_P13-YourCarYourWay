@@ -242,6 +242,26 @@ export class WebsocketDialogboxComponent implements OnInit, OnDestroy {
     this.messages = [];
   }
 
+disconnectFromDialog() {
+  if (!this.dialogId || !this.isConnected) return;
+
+  const payload = JSON.stringify({
+    dialogId: this.dialogId,
+    content: "L'utilisateur s'est déconnecté",
+    sender: this.currentUser?.id.toString() || "0",
+    type: 'LEAVE'
+  });
+  this.sendOrQueue('/app/chat.disconnect', payload);
+  this.resetMessages();
+  this.dialogId = null;
+  this.currentDialog = null;
+  if (this.subscription) {
+    this.subscription.unsubscribe();
+    this.subscription = null;
+  }
+  this.dialogService.triggerDialogRefresh();
+}
+
   private disconnect() {
     this.subscription?.unsubscribe();
     this.dialogCreatedSub?.unsubscribe();

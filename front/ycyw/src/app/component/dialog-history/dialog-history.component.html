@@ -4,14 +4,33 @@
     <p>Aucun dialogue trouvé.</p>
   </div>
 
-  <div *ngFor="let dialog of dialogs" class="dialog-item" [ngClass]="{
-       'status-open': dialog.status === 'OPEN',
-       'status-pending': dialog.status === 'PENDING',
-       'status-closed': dialog.status === 'CLOSED'
-     }">
-    <div class="dialog-select" (click)="selectDialog(dialog.id)">
-      <div class="dialog-title">{{ getDialogTitle(dialog.topic) }}</div>
-      <div class="dialog-date">{{ getDialogDate(dialog.topic) }}</div>
+  <div class="dialog-section" *ngIf="getDialogsByStatus('PENDING').length > 0">
+    <h3 class="status-pending">En attente</h3>
+    <div *ngFor="let dialog of getDialogsByStatus('PENDING')" class="dialog-item status-pending">
+      <div class="dialog-select" (click)="selectDialog(dialog.id)">
+        <div class="dialog-title">{{ getDialogTitle(dialog.topic) }}</div>
+        <div class="dialog-date">{{ getDialogDate(dialog.topic) }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dialog-section" *ngIf="getDialogsByStatus('OPEN').length > 0">
+    <h3 class="status-open">Active{{ getDialogsByStatus('OPEN').length > 1 ? 's' : '' }}</h3>
+    <div *ngFor="let dialog of getDialogsByStatus('OPEN')" class="dialog-item status-open">
+      <div class="dialog-select" (click)="selectDialog(dialog.id)">
+        <div class="dialog-title">{{ getDialogTitle(dialog.topic) }}</div>
+        <div class="dialog-date">{{ getDialogDate(dialog.topic) }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dialog-section" *ngIf="getDialogsByStatus('CLOSED').length > 0">
+    <h3 class="status-closed">Archivée{{ getDialogsByStatus('CLOSED').length > 1 ? 's' : '' }}</h3>
+    <div *ngFor="let dialog of getDialogsByStatus('CLOSED')" class="dialog-item status-closed">
+      <div class="dialog-select" (click)="selectDialog(dialog.id)">
+        <div class="dialog-title">{{ getDialogTitle(dialog.topic) }}</div>
+        <div class="dialog-date">{{ getDialogDate(dialog.topic) }}</div>
+      </div>
     </div>
   </div>
 

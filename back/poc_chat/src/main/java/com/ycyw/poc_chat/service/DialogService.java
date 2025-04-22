@@ -34,11 +34,7 @@ public class DialogService {
 +   */
   @Transactional
   public Dialog createDialog(String topic, Long requesterId) {
-    /*Authentication auth = SecurityContextHolder
-      .getContext()
-      .getAuthentication();
-    UserPrincipal requester = (UserPrincipal) auth.getPrincipal();*/
-
+    
     String timestamp = LocalDateTime
       .now()
       .format(DateTimeFormatter.ofPattern("yyyyMMdd_HH:mm:ss"));
@@ -66,7 +62,6 @@ public class DialogService {
     dialog.getParticipants().add(clientProfile);
 
     Dialog savedDialog = dialogRepository.save(dialog);
-    //DialogDTO dialogDto = dialogMapper.toDialogDTO(savedDialog);
 
     messagingTemplate.convertAndSend("/topic/dialogs/new", "NEW");
 
@@ -96,6 +91,7 @@ public class DialogService {
     if (isClient) {
       if (dialog.getStatus() == DialogStatus.CLOSED) {
         dialog.setStatus(DialogStatus.PENDING);
+        messagingTemplate.convertAndSend("/topic/dialogs/new", "PENDING");
         dialog.setClosedAt(null);
       }
       senderProfile = UserProfile.builder().id(senderId).build();
@@ -103,6 +99,7 @@ public class DialogService {
       senderProfile = userProfileRepository.getReferenceById(senderId);
       if (dialog.getStatus() == DialogStatus.PENDING) {
         dialog.setStatus(DialogStatus.OPEN);
+        messagingTemplate.convertAndSend("/topic/dialogs/new", "OPEN");
       }
     }
 
@@ -142,6 +139,7 @@ public class DialogService {
       throw new RuntimeException("Dialog already closed");
     }
     dialog.setStatus(DialogStatus.CLOSED);
+    messagingTemplate.convertAndSend("/topic/dialogs/new", "CLOSED");
     dialog.setClosedAt(LocalDateTime.now());
 
     return dialogRepository.save(dialog);

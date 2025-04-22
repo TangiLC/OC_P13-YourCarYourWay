@@ -4,9 +4,16 @@
     <div *ngIf="currentDialog" class="dialog-info">
       <h2>{{ dialogTitle }}</h2>
       <p *ngIf="dialogDate">Créé le : {{ dialogDate }}</p>
+
+      <button mat-raised-button color="warn" *ngIf="isConnected" (click)="disconnectFromDialog()"
+        class="disconnect-button">
+        <mat-icon>exit_to_app</mat-icon>
+        <span>Quitter</span>
+      </button>
     </div>
+
     <div *ngIf="!currentDialog && isConnected" class="no-dialog">
-      <p>Pas de dialogue en cours. Veuillez sélectionner ou créer un dialogue.</p>
+      <p>Pas de conversation en cours. Veuillez sélectionner ou créer une conversation.</p>
     </div>
   </div>
 

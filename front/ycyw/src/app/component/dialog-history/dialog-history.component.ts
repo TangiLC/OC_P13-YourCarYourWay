@@ -17,7 +17,10 @@ import { DialogService } from '../../services/dialog.service';
 import { Subscription } from 'rxjs';
 import { IMessage } from '@stomp/rx-stomp';
 import { WebsocketService } from '../../services/websocket.service';
-import { extractDialogDate, extractDialogTitle } from '../../utils/dialog-utils';
+import {
+  extractDialogDate,
+  extractDialogTitle,
+} from '../../utils/dialog-utils';
 
 @Component({
   selector: 'app-dialog-history',
@@ -28,7 +31,7 @@ import { extractDialogDate, extractDialogTitle } from '../../utils/dialog-utils'
     MatInputModule,
     MatFormFieldModule,
     MatIconModule,
-    FormsModule
+    FormsModule,
   ],
   templateUrl: './dialog-history.component.html',
   styleUrls: ['./dialog-history.component.scss'],
@@ -36,10 +39,10 @@ import { extractDialogDate, extractDialogTitle } from '../../utils/dialog-utils'
 export class DialogHistoryComponent implements OnInit, OnDestroy {
   @Input() senderId!: number;
   @Output() dialogSelected = new EventEmitter<number>();
-  @Output() dialogCreated = new EventEmitter<string>(); // Émettre le topic pour créer un dialogue
+  @Output() dialogCreated = new EventEmitter<string>();
 
   topicInput = '';
-  isConnected = false; // Pour savoir si le websocket est connecté
+  isConnected = false;
   dialogs: DialogDTO[] = [];
   private refreshSub: Subscription | null = null;
   private connectionSub: Subscription | null = null;
@@ -54,17 +57,16 @@ export class DialogHistoryComponent implements OnInit, OnDestroy {
       console.warn('senderId manquant dans DialogHistoryComponent');
       return;
     }
-
     this.loadDialogs();
 
     this.refreshSub = this.dialogService.onDialogRefresh().subscribe(() => {
       this.loadDialogs();
     });
-
-    // S'abonner à l'état de connexion du websocket
-    this.connectionSub = this.websocketService.connectionStatus$.subscribe(status => {
-      this.isConnected = status;
-    });
+    this.connectionSub = this.websocketService.connectionStatus$.subscribe(
+      (status) => {
+        this.isConnected = status;
+      }
+    );
   }
 
   ngOnDestroy(): void {
@@ -98,5 +100,9 @@ export class DialogHistoryComponent implements OnInit, OnDestroy {
 
   getDialogDate(topic: string | undefined | null): string {
     return extractDialogDate(topic);
+  }
+
+  getDialogsByStatus(status: string): DialogDTO[] {
+    return this.dialogs.filter((dialog) => dialog.status === status);
   }
 }

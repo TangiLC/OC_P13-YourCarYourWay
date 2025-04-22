@@ -26,17 +26,20 @@ export class AppComponent implements OnInit {
     this.client.activate();
 
     this.client.connected$.subscribe(() => {
+      const validStatuses = ['NEW', 'PENDING', 'OPENED', 'CLOSED'];
       this.client.watch('/topic/dialogs/new').subscribe((message: IMessage) => {
         try {
           if (!message.body.startsWith('{')) {
-            if (message.body === 'NEW') {
+            if (validStatuses.includes(message.body)) {
+              console.log("REFRESH LIST")
               this.dialogService.triggerDialogRefresh();
             }
             return;
           }
 
           const payload = JSON.parse(message.body);
-          if (payload.event === 'NEW') {
+          if (validStatuses.includes(payload.event)) {
+            console.log("REFRESH LIST")
             this.dialogService.triggerDialogRefresh();
           }
         } catch (e) {

@@ -32,6 +32,10 @@ public class ChatMessage {
   @EqualsAndHashCode.Include
   private LocalDateTime timestamp;
 
+  @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+  @EqualsAndHashCode.Include
+  private Boolean isRead = false;
+
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "dialog_id", nullable = false)
   @JsonBackReference

@@ -29,8 +29,11 @@ public class ChatMessageDTO {
   @Schema(description = "Identifiant du dialogue auquel ce message appartient")
   private Long dialogId;
 
-  @Schema(description = "Adresse email ou identifiant de l'expéditeur")
+  @Schema(description = "Identifiant de l'expéditeur")
   private String sender;
+
+  @Schema(description = "Indique si le message a été lu")
+private Boolean isRead;
 
   @Schema(description = "Type de message : CHAT, JOIN, LEAVE")
   private MessageType type;
