@@ -2,7 +2,8 @@
 
   <div class="dialog-header">
     <div *ngIf="currentDialog" class="dialog-info">
-      <h2>{{ currentDialog.topic || 'Sans titre' }} (Dialog ID: {{ currentDialog.id }})</h2>
+      <h2>{{ dialogTitle }}</h2>
+      <p *ngIf="dialogDate">Créé le : {{ dialogDate }}</p>
     </div>
     <div *ngIf="!currentDialog && isConnected" class="no-dialog">
       <p>Pas de dialogue en cours. Veuillez sélectionner ou créer un dialogue.</p>
@@ -19,14 +20,14 @@
     <span>{{ connectionError }}</span>
   </div>
 
-  <div *ngIf="currentDialog">
+  <div *ngIf="isDialogLoading" class="spinner-container">
+    <mat-spinner diameter="30"></mat-spinner>
+  </div>
+
+  <div *ngIf="currentDialog && !isDialogLoading">
     <mat-list>
       <div *ngFor="let msg of messages" class="message-wrapper">
-        <div class="message-container" [ngClass]="{
-               'my-message': currentUser && msg.sender == currentUser.id.toString(),
-               'other-message': !currentUser || msg.sender != currentUser.id.toString(),
-               'system-message': msg.type !== 'CHAT'
-             }">
+        <div class="message-container" [ngClass]="getMessageCssClass(msg)">
           <span class="message-content">
             <ng-container *ngIf="msg.type === 'CHAT'">
               {{ getSenderName(msg.sender) }}: {{ msg.content }}

@@ -17,6 +17,7 @@ import { DialogService } from '../../services/dialog.service';
 import { Subscription } from 'rxjs';
 import { IMessage } from '@stomp/rx-stomp';
 import { WebsocketService } from '../../services/websocket.service';
+import { extractDialogDate, extractDialogTitle } from '../../utils/dialog-utils';
 
 @Component({
   selector: 'app-dialog-history',
@@ -89,5 +90,13 @@ export class DialogHistoryComponent implements OnInit, OnDestroy {
     if (!this.topicInput.trim()) return;
     this.dialogCreated.emit(this.topicInput.trim());
     this.topicInput = '';
+  }
+
+  getDialogTitle(topic: string | undefined | null): string {
+    return extractDialogTitle(topic);
+  }
+
+  getDialogDate(topic: string | undefined | null): string {
+    return extractDialogDate(topic);
   }
 }

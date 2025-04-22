@@ -1,4 +1,4 @@
-export type MessageType = 'CHAT' | 'JOIN' | 'LEAVE';
+export type MessageType = 'CHAT' | 'JOIN' | 'LEAVE' | 'INFO' | 'CLOSE';
 
 export interface ChatMessageDTO {
   id: number;

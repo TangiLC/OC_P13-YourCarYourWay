@@ -1,4 +1,47 @@
+.history-container{
+  margin:4px;
+}
+
 .mat-mdc-raised-button{
   width:100%;
   margin: 2px auto;
+}
+
+.status-open {
+  border-left: 6px solid #1a88ff;
+  background-color: #c4e1ff;
+}
+
+.status-pending {
+  border-left: 6px solid #ff9800;
+  background-color: #fff3e0;
+}
+
+.status-closed {
+  border-left: 6px solid #c5c5c5;
+  background-color: #f5f5f5;
+}
+
+.dialog-item {
+  margin-bottom: 8px;
+
+  .dialog-select {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 90%;
+    text-align: left;
+    padding: 12px;
+    background:transparent;
+  }
+
+  .dialog-title {
+    font-weight: bold;
+    font-size: 14px;
+  }
+
+  .dialog-date {
+    font-size: 12px;
+    color: #666;
+  }
 }

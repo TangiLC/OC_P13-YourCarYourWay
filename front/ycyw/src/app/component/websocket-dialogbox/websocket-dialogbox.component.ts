@@ -12,6 +12,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { IMessage } from '@stomp/stompjs';
 import { RxStomp } from '@stomp/rx-stomp';
 import { myRxStompConfig } from '../../rx-stomp.config';
@@ -20,6 +21,10 @@ import { DialogService } from '../../services/dialog.service';
 import { WebsocketService } from '../../services/websocket.service';
 import { DialogDTO, ChatMessageDTO, UserProfileDTO } from '../../dto';
 import { UserService } from '../../services/user.service';
+import {
+  extractDialogDate,
+  extractDialogTitle,
+} from '../../utils/dialog-utils';
 
 @Component({
   selector: 'app-websocket-dialogbox',
@@ -32,6 +37,7 @@ import { UserService } from '../../services/user.service';
     MatButtonModule,
     MatIconModule,
     MatFormFieldModule,
+    MatProgressSpinnerModule,
   ],
   templateUrl: './websocket-dialogbox.component.html',
   styleUrls: ['./websocket-dialogbox.component.scss'],
@@ -45,6 +51,7 @@ export class WebsocketDialogboxComponent implements OnInit, OnDestroy {
   messages: ChatMessageDTO[] = [];
   newMessage = '';
   currentUser: UserProfileDTO | null = null;
+  isDialogLoading = false;
 
   private messageQueue: { destination: string; body: any }[] = [];
   private client: RxStomp;
@@ -95,13 +102,15 @@ export class WebsocketDialogboxComponent implements OnInit, OnDestroy {
 
   loadDialogInfo(): void {
     if (!this.dialogId) return;
+    this.isDialogLoading = true;
 
     this.dialogSub?.unsubscribe();
     this.dialogSub = this.dialogService.getDialogById(this.dialogId).subscribe({
       next: (dialog) => {
         this.currentDialog = dialog;
+        this.isDialogLoading = false;
+
         if (dialog.messages && dialog.messages.length > 0) {
-          console.log('***DIALOG***', dialog);
           this.resetMessages();
 
           const chatMessages: ChatMessageDTO[] = dialog.messages;
@@ -184,8 +193,10 @@ export class WebsocketDialogboxComponent implements OnInit, OnDestroy {
     const payload = JSON.stringify({
       dialogId: this.dialogId,
       content: this.newMessage.trim(),
+      sender: this.currentUser?.id.toString() || 0,
       type: 'CHAT',
     });
+    console.log('###SEND MESSAGE:', payload);
     this.sendOrQueue('/app/chat.sendMessage', payload);
     this.newMessage = '';
   }
@@ -213,6 +224,7 @@ export class WebsocketDialogboxComponent implements OnInit, OnDestroy {
       .subscribe((message: IMessage) => {
         try {
           const msg: ChatMessageDTO = JSON.parse(message.body);
+          msg.sender = msg.sender?.toString();
           this.messages.push(msg);
 
           this.messages.sort((a, b) => {
@@ -240,11 +252,16 @@ export class WebsocketDialogboxComponent implements OnInit, OnDestroy {
   }
 
   formatMessage(msg: ChatMessageDTO): string {
+    console.log('****formatMessage', msg);
     switch (msg.type) {
       case 'JOIN':
         return `[CONNEXION] ${msg.sender}`;
       case 'LEAVE':
         return `[DÉCONNEXION] ${msg.sender}`;
+      case 'CLOSE':
+        return `[CLOSE] ${msg}`;
+      case 'INFO':
+        return `[INFO] ${msg}`;
       default:
         return `${msg.sender}: ${msg.content}`;
     }
@@ -260,5 +277,26 @@ export class WebsocketDialogboxComponent implements OnInit, OnDestroy {
       (p) => p.id === id
     );
     return participant ? participant.firstName : 'Utilisateur ' + senderId;
+  }
+
+  get dialogTitle(): string {
+    return extractDialogTitle(this.currentDialog?.topic);
+  }
+
+  get dialogDate(): string {
+    return extractDialogDate(this.currentDialog?.topic);
+  }
+
+  getMessageCssClass(msg: ChatMessageDTO): string {
+    if (msg.type !== 'CHAT') {
+      return 'system-message';
+    }
+    const senderId = msg.sender?.toString?.();
+    const currentId = this.currentUser?.id?.toString();
+
+    if (senderId && currentId && senderId === currentId) {
+      return 'my-message';
+    }
+    return 'other-message';
   }
 }

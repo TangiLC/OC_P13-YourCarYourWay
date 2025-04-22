@@ -81,7 +81,7 @@ public class WSChatController {
           log.warn("sendUserMessage: dialogId is null");
           return;
         }
-        prepareMessage(message, profile.getFirstName(), MessageType.CHAT);
+        prepareMessage(message, profile.getId().toString(), MessageType.CHAT);
 
         ChatMessage saved = dialogService.sendMessage(
           message.getDialogId(),
@@ -179,10 +179,10 @@ public class WSChatController {
 
   private void prepareMessage(
     ChatMessageDTO message,
-    String senderName,
+    String sender,
     MessageType messageType
   ) {
-    message.setSender(senderName);
+    message.setSender(sender);
     message.setTimestamp(LocalDateTime.now());
     message.setType(messageType);
   }
