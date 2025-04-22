@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { RxStomp } from '@stomp/rx-stomp';
 import { IMessage } from '@stomp/stompjs';
-import { myRxStompConfig } from './rx-stomp.config';
+import { myRxStompConfig } from './my-rx-stomp.config';
 import { DialogService } from './services/dialog.service';
 
 @Component({
@@ -31,7 +31,7 @@ export class AppComponent implements OnInit {
         try {
           if (!message.body.startsWith('{')) {
             if (validStatuses.includes(message.body)) {
-              console.log("REFRESH LIST")
+              console.log('REFRESH LIST');
               this.dialogService.triggerDialogRefresh();
             }
             return;
@@ -39,7 +39,7 @@ export class AppComponent implements OnInit {
 
           const payload = JSON.parse(message.body);
           if (validStatuses.includes(payload.event)) {
-            console.log("REFRESH LIST")
+            console.log('REFRESH LIST');
             this.dialogService.triggerDialogRefresh();
           }
         } catch (e) {

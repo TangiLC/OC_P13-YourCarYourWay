@@ -34,7 +34,6 @@ public class DialogService {
 +   */
   @Transactional
   public Dialog createDialog(String topic, Long requesterId) {
-    
     String timestamp = LocalDateTime
       .now()
       .format(DateTimeFormatter.ofPattern("yyyyMMdd_HH:mm:ss"));
@@ -63,7 +62,7 @@ public class DialogService {
 
     Dialog savedDialog = dialogRepository.save(dialog);
 
-    messagingTemplate.convertAndSend("/topic/dialogs/new", "NEW");
+    messagingTemplate.convertAndSend("/topic/dialogs/update", "NEW");
 
     return savedDialog;
   }
@@ -82,6 +81,7 @@ public class DialogService {
     Long senderId,
     String content,
     boolean isClient
+    
   ) {
     UserProfile senderProfile;
     Dialog dialog = dialogRepository
@@ -91,7 +91,7 @@ public class DialogService {
     if (isClient) {
       if (dialog.getStatus() == DialogStatus.CLOSED) {
         dialog.setStatus(DialogStatus.PENDING);
-        messagingTemplate.convertAndSend("/topic/dialogs/new", "PENDING");
+        messagingTemplate.convertAndSend("/topic/dialogs/update", "PENDING");
         dialog.setClosedAt(null);
       }
       senderProfile = UserProfile.builder().id(senderId).build();
@@ -99,7 +99,7 @@ public class DialogService {
       senderProfile = userProfileRepository.getReferenceById(senderId);
       if (dialog.getStatus() == DialogStatus.PENDING) {
         dialog.setStatus(DialogStatus.OPEN);
-        messagingTemplate.convertAndSend("/topic/dialogs/new", "OPEN");
+        messagingTemplate.convertAndSend("/topic/dialogs/update", "OPEN");
       }
     }
 
@@ -120,6 +120,7 @@ public class DialogService {
       .timestamp(LocalDateTime.now())
       .content(content)
       .type(MessageType.CHAT)
+      .isRead(false)
       .dialog(dialog)
       .build();
 
@@ -139,7 +140,7 @@ public class DialogService {
       throw new RuntimeException("Dialog already closed");
     }
     dialog.setStatus(DialogStatus.CLOSED);
-    messagingTemplate.convertAndSend("/topic/dialogs/new", "CLOSED");
+    messagingTemplate.convertAndSend("/topic/dialogs/update", "CLOSED");
     dialog.setClosedAt(LocalDateTime.now());
 
     return dialogRepository.save(dialog);

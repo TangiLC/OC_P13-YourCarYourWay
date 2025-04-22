@@ -15,7 +15,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { IMessage } from '@stomp/stompjs';
 import { RxStomp } from '@stomp/rx-stomp';
-import { myRxStompConfig } from '../../rx-stomp.config';
+import { myRxStompConfig } from '../../my-rx-stomp.config';
 import { Subscription } from 'rxjs';
 import { DialogService } from '../../services/dialog.service';
 import { WebsocketService } from '../../services/websocket.service';
@@ -194,6 +194,7 @@ export class WebsocketDialogboxComponent implements OnInit, OnDestroy {
       dialogId: this.dialogId,
       content: this.newMessage.trim(),
       sender: this.currentUser?.id.toString() || 0,
+      isRead: false,
       type: 'CHAT',
     });
     console.log('###SEND MESSAGE:', payload);
@@ -242,25 +243,25 @@ export class WebsocketDialogboxComponent implements OnInit, OnDestroy {
     this.messages = [];
   }
 
-disconnectFromDialog() {
-  if (!this.dialogId || !this.isConnected) return;
+  disconnectFromDialog() {
+    if (!this.dialogId || !this.isConnected) return;
 
-  const payload = JSON.stringify({
-    dialogId: this.dialogId,
-    content: "L'utilisateur s'est déconnecté",
-    sender: this.currentUser?.id.toString() || "0",
-    type: 'LEAVE'
-  });
-  this.sendOrQueue('/app/chat.disconnect', payload);
-  this.resetMessages();
-  this.dialogId = null;
-  this.currentDialog = null;
-  if (this.subscription) {
-    this.subscription.unsubscribe();
-    this.subscription = null;
+    const payload = JSON.stringify({
+      dialogId: this.dialogId,
+      content: "L'utilisateur s'est déconnecté",
+      sender: this.currentUser?.id.toString() || '0',
+      type: 'LEAVE',
+    });
+    this.sendOrQueue('/app/chat.disconnect', payload);
+    this.resetMessages();
+    this.dialogId = null;
+    this.currentDialog = null;
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+      this.subscription = null;
+    }
+    this.dialogService.triggerDialogRefresh();
   }
-  this.dialogService.triggerDialogRefresh();
-}
 
   private disconnect() {
     this.subscription?.unsubscribe();

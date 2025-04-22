@@ -1,10 +1,8 @@
 package com.ycyw.poc_chat.dto;
 
+import com.ycyw.poc_chat.model.MessageType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
-
-import com.ycyw.poc_chat.model.MessageType;
-
 import lombok.*;
 
 /**
@@ -33,9 +31,8 @@ public class ChatMessageDTO {
   private String sender;
 
   @Schema(description = "Indique si le message a été lu")
-private Boolean isRead;
+  private Boolean isRead;
 
   @Schema(description = "Type de message : CHAT, JOIN, LEAVE")
   private MessageType type;
-
 }

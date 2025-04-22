@@ -11,6 +11,6 @@ export const myRxStompConfig: RxStompConfig = {
   },
   reconnectDelay: 5000,
   heartbeatIncoming: 0,
-  heartbeatOutgoing: 0,
+  heartbeatOutgoing: 5000,
   debug: (str) => console.log(str),
 };
