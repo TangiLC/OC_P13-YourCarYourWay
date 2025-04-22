@@ -12,14 +12,16 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { DialogDTO } from '../../dto';
 import { DialogService } from '../../services/dialog.service';
-import { Subscription } from 'rxjs';
-import { IMessage } from '@stomp/rx-stomp';
 import { WebsocketService } from '../../services/websocket.service';
 import {
-  extractDialogDate,
   extractDialogTitle,
+  extractDialogDate,
+  groupByStatus,
+  countUnread,
 } from '../../utils/dialog-utils';
 
 @Component({
@@ -44,44 +46,52 @@ export class DialogHistoryComponent implements OnInit, OnDestroy {
   topicInput = '';
   isConnected = false;
   dialogs: DialogDTO[] = [];
-  private refreshSub: Subscription | null = null;
-  private connectionSub: Subscription | null = null;
+  grouped = new Map<string, DialogDTO[]>();
+
+  private destroyed$ = new Subject<void>();
 
   constructor(
     private dialogService: DialogService,
-    private websocketService: WebsocketService
+    private ws: WebsocketService
   ) {}
 
   ngOnInit(): void {
     if (!this.senderId) {
-      console.warn('senderId manquant dans DialogHistoryComponent');
+      console.warn('DialogHistoryComponent: senderId is required');
       return;
     }
-    this.loadDialogs();
 
-    this.refreshSub = this.dialogService.onDialogRefresh().subscribe(() => {
-      this.loadDialogs();
-    });
-    this.connectionSub = this.websocketService.connectionStatus$.subscribe(
-      (status) => {
-        this.isConnected = status;
-      }
-    );
+    this.loadDialogs();
+    this.dialogService
+      .onDialogRefresh()
+      .pipe(takeUntil(this.destroyed$))
+      .subscribe(() => this.loadDialogs());
+
+    this.ws.connected$
+      .pipe(takeUntil(this.destroyed$))
+      .subscribe((status) => (this.isConnected = status));
   }
 
   ngOnDestroy(): void {
-    this.refreshSub?.unsubscribe();
-    this.connectionSub?.unsubscribe();
+    this.destroyed$.next();
+    this.destroyed$.complete();
   }
 
-  loadDialogs(): void {
-    this.dialogService.getDialogsBySender(this.senderId).subscribe({
-      next: (data) => (this.dialogs = data),
-      error: (err) => {
-        console.error('Erreur de récupération des dialogues', err);
-        this.dialogs = [];
-      },
-    });
+  private loadDialogs(): void {
+    this.dialogService
+      .getDialogsBySender(this.senderId)
+      .pipe(takeUntil(this.destroyed$))
+      .subscribe({
+        next: (data) => {
+          this.dialogs = data;
+          this.grouped = groupByStatus(this.dialogs);
+        },
+        error: (err) => {
+          console.error('Failed to load dialogs', err);
+          this.dialogs = [];
+          this.grouped.clear();
+        },
+      });
   }
 
   selectDialog(id: number): void {
@@ -89,20 +99,22 @@ export class DialogHistoryComponent implements OnInit, OnDestroy {
   }
 
   createNewDialog(): void {
-    if (!this.topicInput.trim()) return;
-    this.dialogCreated.emit(this.topicInput.trim());
+    const topic = this.topicInput.trim();
+    if (!topic) return;
+    this.dialogCreated.emit(topic);
     this.topicInput = '';
   }
 
-  getDialogTitle(topic: string | undefined | null): string {
+  getDialogTitle(topic?: string | null): string {
     return extractDialogTitle(topic);
   }
-
-  getDialogDate(topic: string | undefined | null): string {
+  getDialogDate(topic?: string | null): string {
     return extractDialogDate(topic);
   }
-
   getDialogsByStatus(status: string): DialogDTO[] {
-    return this.dialogs.filter((dialog) => dialog.status === status);
+    return this.grouped.get(status) || [];
+  }
+  getUnreadCount(dialog: DialogDTO): number {
+    return countUnread(dialog, this.senderId);
   }
 }

@@ -6,5 +6,6 @@ export interface ChatMessageDTO {
   timestamp: string;
   dialogId: number;
   sender: string;
+  isRead:boolean;
   type: MessageType;
 }

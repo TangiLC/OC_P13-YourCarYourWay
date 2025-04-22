@@ -8,6 +8,7 @@ import { MatCardModule } from '@angular/material/card';
 import { GenericCardComponent } from '../../component/generic-card/generic-card.component';
 import { DialogHistoryComponent } from '../../component/dialog-history/dialog-history.component';
 import { WebsocketDialogboxComponent } from '../../component/websocket-dialogbox/websocket-dialogbox.component';
+import { DialogMonitorComponent } from '../debug/refresh.component';
 
 import { UserService } from '../../services/user.service';
 import { WebsocketService } from '../../services/websocket.service';
@@ -25,6 +26,7 @@ import { UserProfileDTO } from '../../dto';
     GenericCardComponent,
     DialogHistoryComponent,
     WebsocketDialogboxComponent,
+    DialogMonitorComponent
   ],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],

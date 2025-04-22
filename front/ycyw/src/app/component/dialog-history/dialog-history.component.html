@@ -8,8 +8,15 @@
     <h3 class="status-pending">En attente</h3>
     <div *ngFor="let dialog of getDialogsByStatus('PENDING')" class="dialog-item status-pending">
       <div class="dialog-select" (click)="selectDialog(dialog.id)">
-        <div class="dialog-title">{{ getDialogTitle(dialog.topic) }}</div>
-        <div class="dialog-date">{{ getDialogDate(dialog.topic) }}</div>
+        <div class="dialog-title">
+          <div>{{ getDialogTitle(dialog.topic) }}</div>
+          <div *ngIf="getUnreadCount(dialog) > 0" class="unread-count">
+            {{ getUnreadCount(dialog) }}
+          </div>
+        </div>
+        <div class="dialog-date">{{ getDialogDate(dialog.topic) }}
+
+        </div>
       </div>
     </div>
   </div>

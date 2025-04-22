@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { RxStomp } from '@stomp/rx-stomp';
 import { IMessage } from '@stomp/stompjs';
-import { myRxStompConfig } from './rx-stomp.config';
+import { myRxStompConfig } from './my-rx-stomp.config';
 import { DialogService } from './services/dialog.service';
 
 @Component({
@@ -26,8 +26,10 @@ export class AppComponent implements OnInit {
     this.client.activate();
 
     this.client.connected$.subscribe(() => {
+      console.log("@@@@@@STOMP connecté !");
       const validStatuses = ['NEW', 'PENDING', 'OPENED', 'CLOSED'];
-      this.client.watch('/topic/dialogs/new').subscribe((message: IMessage) => {
+      this.client.watch('/topic/dialogs/refresh').subscribe((message: IMessage) => {
+        console.log("Message reçu sur /topic/dialogs/refresh", message.body);
         try {
           if (!message.body.startsWith('{')) {
             if (validStatuses.includes(message.body)) {

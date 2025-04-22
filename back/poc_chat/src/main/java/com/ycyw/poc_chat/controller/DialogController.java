@@ -24,7 +24,10 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/dialog")
 @RequiredArgsConstructor
-@Tag(name = "Chat API", description = "API pour le chat avec parallèle WebSocket")
+@Tag(
+  name = "Chat API",
+  description = "API pour le chat avec parallèle WebSocket"
+)
 public class DialogController {
 
   private final DialogRepository dialogRepository;
@@ -119,6 +122,21 @@ public class DialogController {
       dialogService.inviteUser(dialogId, userId);
       return ResponseEntity.ok().build();
     } catch (EntityNotFoundException ex) {
+      return ResponseEntity.notFound().build();
+    }
+  }
+
+  @Operation(summary = "Marquer tous les messages du dialogue comme lus")
+  @ApiResponse(responseCode = "200", description = "Messages marqués comme lus")
+  @ApiResponse(responseCode = "404", description = "Dialogue non trouvé")
+  @PutMapping("/{dialogId}/read")
+  public ResponseEntity<Void> markAllMessagesAsRead(
+    @PathVariable Long dialogId
+  ) {
+    try {
+      dialogService.markMessagesAsRead(dialogId);
+      return ResponseEntity.ok().build();
+    } catch (RuntimeException e) {
       return ResponseEntity.notFound().build();
     }
   }
