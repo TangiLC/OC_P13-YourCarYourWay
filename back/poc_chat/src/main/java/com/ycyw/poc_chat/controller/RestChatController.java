@@ -130,7 +130,6 @@ public class RestChatController {
       saved.getTimestamp(),
       saved.getDialog().getId(),
       user.getUsername(),
-      saved.getIsRead(),
       saved.getType()
     );
 

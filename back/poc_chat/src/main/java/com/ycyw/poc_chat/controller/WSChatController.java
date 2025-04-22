@@ -112,8 +112,6 @@ public class WSChatController {
         String destination = "/topic/dialog/" + message.getDialogId();
         messagingTemplate.convertAndSend(destination, message);
         lifecycleManager.userJoined(message.getDialogId(), user.getUsername());
-        dialogService.markMessagesAsRead(message.getDialogId());
-
       }
     );
   }
