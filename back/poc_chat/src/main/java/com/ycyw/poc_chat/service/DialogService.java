@@ -34,6 +34,7 @@ public class DialogService {
 +   */
   @Transactional
   public Dialog createDialog(String topic, Long requesterId) {
+    
     String timestamp = LocalDateTime
       .now()
       .format(DateTimeFormatter.ofPattern("yyyyMMdd_HH:mm:ss"));
@@ -62,7 +63,7 @@ public class DialogService {
 
     Dialog savedDialog = dialogRepository.save(dialog);
 
-    messagingTemplate.convertAndSend("/topic/dialogs/refresh", "NEW");
+    messagingTemplate.convertAndSend("/topic/dialogs/new", "NEW");
 
     return savedDialog;
   }
@@ -90,8 +91,7 @@ public class DialogService {
     if (isClient) {
       if (dialog.getStatus() == DialogStatus.CLOSED) {
         dialog.setStatus(DialogStatus.PENDING);
-        System.out.println("About to send message to /topic/dialogs/refresh: " + "NEW");
-        messagingTemplate.convertAndSend("/topic/dialogs/refresh", "PENDING");
+        messagingTemplate.convertAndSend("/topic/dialogs/new", "PENDING");
         dialog.setClosedAt(null);
       }
       senderProfile = UserProfile.builder().id(senderId).build();
@@ -99,8 +99,7 @@ public class DialogService {
       senderProfile = userProfileRepository.getReferenceById(senderId);
       if (dialog.getStatus() == DialogStatus.PENDING) {
         dialog.setStatus(DialogStatus.OPEN);
-        System.out.println("About to send message to /topic/dialogs/refresh: " + "OPEN");
-        messagingTemplate.convertAndSend("/topic/dialogs/refresh", "OPEN");
+        messagingTemplate.convertAndSend("/topic/dialogs/new", "OPEN");
       }
     }
 
@@ -122,7 +121,6 @@ public class DialogService {
       .content(content)
       .type(MessageType.CHAT)
       .dialog(dialog)
-      .isRead(false)
       .build();
 
     return messageRepository.save(message);
@@ -141,7 +139,7 @@ public class DialogService {
       throw new RuntimeException("Dialog already closed");
     }
     dialog.setStatus(DialogStatus.CLOSED);
-    messagingTemplate.convertAndSend("/topic/dialogs/refresh", "CLOSED");
+    messagingTemplate.convertAndSend("/topic/dialogs/new", "CLOSED");
     dialog.setClosedAt(LocalDateTime.now());
 
     return dialogRepository.save(dialog);
@@ -170,20 +168,5 @@ public class DialogService {
         Map.of("dialogId", dialogId, "invitedUserId", userId)
       );
     }
-  }
-
-  /***
-   * Marque les messages comme lus
-   */
-  @Transactional
-  public void markMessagesAsRead(Long dialogId) {
-    Dialog dialog = dialogRepository
-      .findById(dialogId)
-      .orElseThrow(() -> new RuntimeException("Dialog not found"));
-
-    dialog.getMessages().forEach(message -> message.setIsRead(true));
-
-    dialogRepository.save(dialog);
-    messagingTemplate.convertAndSend("/topic/dialogs/refresh", "NEW");
   }
 }

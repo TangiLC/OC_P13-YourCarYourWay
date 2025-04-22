@@ -1,15 +1,16 @@
-import { RxStomp } from '@stomp/rx-stomp';
-import { myRxStompConfig } from './my-rx-stomp.config';
-import { Provider } from '@angular/core';
+import { RxStompConfig } from '@stomp/rx-stomp';
+import SockJS from 'sockjs-client';
 
-export function rxStompServiceFactory(): RxStomp {
-  const rxStomp = new RxStomp();
-  rxStomp.configure(myRxStompConfig);
-  rxStomp.activate();
-  return rxStomp;
-}
+import { environment } from '../environments/environment';
 
-export const provideRxStomp: Provider = {
-  provide: RxStomp,
-  useFactory: rxStompServiceFactory,
+export const myRxStompConfig: RxStompConfig = {
+  brokerURL: undefined,
+  webSocketFactory: () => new SockJS(`${environment.apiUrl}/ws`),
+  connectHeaders: {
+    Authorization: 'Bearer ' + localStorage.getItem('jwtToken') || '',
+  },
+  reconnectDelay: 5000,
+  heartbeatIncoming: 0,
+  heartbeatOutgoing: 0,
+  debug: (str) => console.log(str),
 };

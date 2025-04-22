@@ -7,7 +7,7 @@
 
 <div class="cards-container">
   <app-generic-card></app-generic-card>
-  <app-dialog-monitor></app-dialog-monitor>
+  <app-generic-card></app-generic-card>
 
   <app-dialog-history *ngIf="user" [senderId]="user.id" (dialogSelected)="onDialogSelected($event)"
     (dialogCreated)="onDialogCreated($event)">

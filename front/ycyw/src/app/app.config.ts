@@ -1,6 +1,5 @@
 import { ApplicationConfig } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideRxStomp } from './rx-stomp.config';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import {
   provideHttpClient,
@@ -22,6 +21,5 @@ export const appConfig: ApplicationConfig = {
 
     provideRouter(appRoutes),
     provideAnimations(),
-    provideRxStomp,
   ],
 };
