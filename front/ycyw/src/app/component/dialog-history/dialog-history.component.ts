@@ -21,6 +21,7 @@ import {
   extractDialogDate,
   extractDialogTitle,
 } from '../../utils/dialog-utils';
+import { UserService } from '../../services/user.service';
 
 @Component({
   selector: 'app-dialog-history',
@@ -49,7 +50,8 @@ export class DialogHistoryComponent implements OnInit, OnDestroy {
 
   constructor(
     private dialogService: DialogService,
-    private websocketService: WebsocketService
+    private websocketService: WebsocketService,
+    private userService: UserService
   ) {}
 
   ngOnInit(): void {
@@ -108,5 +110,17 @@ export class DialogHistoryComponent implements OnInit, OnDestroy {
 
   getDialogsByStatus(status: string): DialogDTO[] {
     return this.dialogs.filter((dialog) => dialog.status === status);
+  }
+
+  getUnreadMessagesCount(dialog: DialogDTO): number {
+    console.log("DIALOG",dialog)
+    const currentUser = this.userService.getCurrentUser();
+    console.log("CURRENT-USER",currentUser)
+    if (!currentUser || !dialog.messages) {
+      return 0;
+    }
+    return dialog.messages.filter(
+      (msg) => !msg.isRead && msg.sender !== currentUser.id.toString()
+    ).length;
   }
 }

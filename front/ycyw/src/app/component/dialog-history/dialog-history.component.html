@@ -9,7 +9,12 @@
     <div *ngFor="let dialog of getDialogsByStatus('PENDING')" class="dialog-item status-pending">
       <div class="dialog-select" (click)="selectDialog(dialog.id)">
         <div class="dialog-title">{{ getDialogTitle(dialog.topic) }}</div>
-        <div class="dialog-date">{{ getDialogDate(dialog.topic) }}</div>
+        <div class="dialog-info-container">
+          <div class="dialog-date">{{ getDialogDate(dialog.topic) }}</div>
+          <div class="unread-count" *ngIf="getUnreadMessagesCount(dialog) > 0">
+            {{ getUnreadMessagesCount(dialog) }}
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -19,7 +24,12 @@
     <div *ngFor="let dialog of getDialogsByStatus('OPEN')" class="dialog-item status-open">
       <div class="dialog-select" (click)="selectDialog(dialog.id)">
         <div class="dialog-title">{{ getDialogTitle(dialog.topic) }}</div>
-        <div class="dialog-date">{{ getDialogDate(dialog.topic) }}</div>
+        <div class="dialog-info-container">
+          <div class="dialog-date">{{ getDialogDate(dialog.topic) }}</div>
+          <div class="unread-count" *ngIf="getUnreadMessagesCount(dialog) > 0">
+            {{ getUnreadMessagesCount(dialog) }}
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -29,7 +39,12 @@
     <div *ngFor="let dialog of getDialogsByStatus('CLOSED')" class="dialog-item status-closed">
       <div class="dialog-select" (click)="selectDialog(dialog.id)">
         <div class="dialog-title">{{ getDialogTitle(dialog.topic) }}</div>
-        <div class="dialog-date">{{ getDialogDate(dialog.topic) }}</div>
+        <div class="dialog-info-container">
+          <div class="dialog-date">{{ getDialogDate(dialog.topic) }}</div>
+          <div class="unread-count" *ngIf="getUnreadMessagesCount(dialog) > 0">
+            {{ getUnreadMessagesCount(dialog) }}
+          </div>
+        </div>
       </div>
     </div>
   </div>

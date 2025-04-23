@@ -19,4 +19,6 @@ public interface ChatMessageRepository
    * @return liste des messages
    */
   List<ChatMessage> findByDialogOrderByTimestampAsc(Dialog dialog);
+
+  
 }
