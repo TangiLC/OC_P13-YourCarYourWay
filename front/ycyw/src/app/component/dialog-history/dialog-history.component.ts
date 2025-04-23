@@ -14,7 +14,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
 import { DialogDTO } from '../../dto';
 import { DialogService } from '../../services/dialog.service';
-import { Subscription } from 'rxjs';
+import { forkJoin, map, Observable, of, Subscription } from 'rxjs';
 import { IMessage } from '@stomp/rx-stomp';
 import { WebsocketService } from '../../services/websocket.service';
 import {
@@ -44,7 +44,10 @@ export class DialogHistoryComponent implements OnInit, OnDestroy {
   showError: boolean = false;
   topicInput = '';
   isConnected = false;
-  dialogs: DialogDTO[] = [];
+  dialogs$: Observable<DialogDTO[]> =of([]);
+  pendingDialogs$: Observable<DialogDTO[]>=of([]);
+  openDialogs$: Observable<DialogDTO[]>=of([]);
+  closedDialogs$: Observable<DialogDTO[]>=of([]);
   private refreshSub: Subscription | null = null;
   private connectionSub: Subscription | null = null;
 
@@ -60,6 +63,9 @@ export class DialogHistoryComponent implements OnInit, OnDestroy {
       return;
     }
     this.loadDialogs();
+    this.pendingDialogs$ = this.getDialogsByStatus$('PENDING');
+    this.openDialogs$    = this.getDialogsByStatus$('OPEN');
+    this.closedDialogs$  = this.getDialogsByStatus$('CLOSED');
 
     this.refreshSub = this.dialogService.onDialogRefresh().subscribe(() => {
       this.loadDialogs();
@@ -77,13 +83,18 @@ export class DialogHistoryComponent implements OnInit, OnDestroy {
   }
 
   loadDialogs(): void {
-    this.dialogService.getDialogsBySender(this.senderId).subscribe({
-      next: (data) => (this.dialogs = data),
-      error: (err) => {
-        console.error('Erreur de récupération des dialogues', err);
-        this.dialogs = [];
-      },
-    });
+    const user = this.userService.getCurrentUser();
+    console.log('&&&User');
+    const mine$ = this.dialogService.getDialogsBySender(user?.id || 0);
+
+    if (user?.type === 'SUPPORT') {
+      const pending$ = this.dialogService.getDialogsByStatus('PENDING');
+      this.dialogs$ = forkJoin([mine$, pending$]).pipe(
+        map(([mine, pending]) => [...mine, ...pending])
+      );
+    } else {
+      this.dialogs$ = mine$;
+    }
   }
 
   selectDialog(id: number): void {
@@ -122,14 +133,14 @@ export class DialogHistoryComponent implements OnInit, OnDestroy {
     return extractDialogDate(topic);
   }
 
-  getDialogsByStatus(status: string): DialogDTO[] {
-    return this.dialogs.filter((dialog) => dialog.status === status);
+  private getDialogsByStatus$(status: string): Observable<DialogDTO[]> {
+    return this.dialogs$.pipe(
+      map(dialogs => dialogs.filter(d => d.status === status))
+    );
   }
 
   getUnreadMessagesCount(dialog: DialogDTO): number {
-    console.log('DIALOG', dialog);
     const currentUser = this.userService.getCurrentUser();
-    console.log('CURRENT-USER', currentUser);
     if (!currentUser || !dialog.messages) {
       return 0;
     }

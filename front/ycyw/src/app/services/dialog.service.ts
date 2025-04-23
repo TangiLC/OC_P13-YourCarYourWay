@@ -17,6 +17,10 @@ export class DialogService {
     return this.http.get<DialogDTO>(`/api/dialog/${id}`);
   }
 
+  getDialogsByStatus(status: string): Observable<DialogDTO[]> {
+    return this.http.get<DialogDTO[]>(`/api/dialog/status/${status}`);
+  }
+
   triggerDialogRefresh() {
     this.dialogRefresh$.next();
   }

@@ -1,12 +1,12 @@
 <div class="history-container">
   <h2>Vos dernières conversations</h2>
-  <div *ngIf="dialogs.length === 0">
+  <div *ngIf="(dialogs$ | async)?.length === 0">
     <p>Aucun dialogue trouvé.</p>
   </div>
 
-  <div class="dialog-section" *ngIf="getDialogsByStatus('PENDING').length > 0">
+  <div class="dialog-section" *ngIf="(pendingDialogs$ | async)?.length||0> 0">
     <h3 class="status-pending">En attente</h3>
-    <div *ngFor="let dialog of getDialogsByStatus('PENDING')" class="dialog-item status-pending">
+    <div *ngFor="let dialog of pendingDialogs$ | async" class="dialog-item status-pending">
       <div class="dialog-select" (click)="selectDialog(dialog.id)">
         <div class="dialog-title">{{ getDialogTitle(dialog.topic) }}</div>
         <div class="dialog-info-container">
@@ -19,9 +19,11 @@
     </div>
   </div>
 
-  <div class="dialog-section" *ngIf="getDialogsByStatus('OPEN').length > 0">
-    <h3 class="status-open">Active{{ getDialogsByStatus('OPEN').length > 1 ? 's' : '' }}</h3>
-    <div *ngFor="let dialog of getDialogsByStatus('OPEN')" class="dialog-item status-open">
+  <div class="dialog-section" *ngIf="(openDialogs$ | async)?.length||0> 0">
+    <h3 class="status-open">
+      Active{{ (openDialogs$ | async)?.length||0> 1 ? 's' : '' }}
+    </h3>
+    <div *ngFor="let dialog of openDialogs$ | async" class="dialog-item status-open">
       <div class="dialog-select" (click)="selectDialog(dialog.id)">
         <div class="dialog-title">{{ getDialogTitle(dialog.topic) }}</div>
         <div class="dialog-info-container">
@@ -34,9 +36,11 @@
     </div>
   </div>
 
-  <div class="dialog-section" *ngIf="getDialogsByStatus('CLOSED').length > 0">
-    <h3 class="status-closed">Archivée{{ getDialogsByStatus('CLOSED').length > 1 ? 's' : '' }}</h3>
-    <div *ngFor="let dialog of getDialogsByStatus('CLOSED')" class="dialog-item status-closed">
+  <div class="dialog-section" *ngIf="(closedDialogs$ | async)?.length||0> 0">
+    <h3 class="status-closed">
+      Archivée{{ (closedDialogs$ | async)?.length||0> 1 ? 's' : '' }}
+    </h3>
+    <div *ngFor="let dialog of closedDialogs$ | async" class="dialog-item status-closed">
       <div class="dialog-select" (click)="selectDialog(dialog.id)">
         <div class="dialog-title">{{ getDialogTitle(dialog.topic) }}</div>
         <div class="dialog-info-container">

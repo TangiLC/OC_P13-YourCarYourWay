@@ -57,6 +57,7 @@ export class WebsocketDialogboxComponent implements OnInit, OnDestroy {
   private subscription: Subscription | null = null;
   private dialogCreatedSub: Subscription | null = null;
   private dialogSub: Subscription | null = null;
+  private userJoinedSub: Subscription | null = null;
 
   constructor(
     private dialogService: DialogService,
@@ -98,6 +99,7 @@ export class WebsocketDialogboxComponent implements OnInit, OnDestroy {
     this.subscription?.unsubscribe();
     this.dialogCreatedSub?.unsubscribe();
     this.dialogSub?.unsubscribe();
+    this.userJoinedSub?.unsubscribe();
   }
 
   private subscribeToConnectionStatus() {
@@ -180,6 +182,7 @@ export class WebsocketDialogboxComponent implements OnInit, OnDestroy {
   private subscribeToDialog() {
     if (!this.dialogId) return;
     this.subscription?.unsubscribe();
+
     this.subscription = this.websocketService.subscribeToDialog(
       this.dialogId,
       (msg) => {
