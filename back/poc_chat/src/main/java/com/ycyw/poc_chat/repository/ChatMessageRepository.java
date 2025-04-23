@@ -20,5 +20,13 @@ public interface ChatMessageRepository
    */
   List<ChatMessage> findByDialogOrderByTimestampAsc(Dialog dialog);
 
-  
+
+  /**
+   * Récupère tous les messages non lus d’un dialogue donné, excepté un sender donné.
+   *
+   * @param dialogId le dialogue concerné
+   * @param senderId le dialogue concerné
+   * @return liste des messages
+   */
+  List<ChatMessage> findByDialog_IdAndSender_IdNotAndIsReadFalse(Long dialogId, Long senderId);
 }

@@ -34,6 +34,7 @@ public class ChatMessage {
 
   @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
   @EqualsAndHashCode.Include
+  @Builder.Default
   private Boolean isRead = false;
 
   @ManyToOne(fetch = FetchType.LAZY)

@@ -8,6 +8,7 @@ import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -164,4 +165,25 @@ public class DialogService {
       );
     }
   }
+
+
+  /**
+ * Marque comme lus tous les messages d'un dialogue dont l'expéditeur n'est pas l'utilisateur spécifié.
+ * 
+ * @param dialogId ID du dialogue
+ * @param senderId ID de l'utilisateur qui lit les messages
+ */
+@Transactional
+public void markMessagesAsRead(Long dialogId, Long senderId) {
+  
+  List<ChatMessage> unreadMessages = messageRepository.findByDialog_IdAndSender_IdNotAndIsReadFalse(dialogId, senderId);
+  
+  unreadMessages.forEach(message -> message.setIsRead(true));
+  messageRepository.saveAll(unreadMessages);
+  
+  messagingTemplate.convertAndSend(
+    "/topic/dialog/" + dialogId + "/read",
+    Map.of("dialogId", dialogId, "readerId", senderId)
+  );
+}
 }
