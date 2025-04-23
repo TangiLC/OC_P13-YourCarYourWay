@@ -36,12 +36,17 @@
 
   <div class="topic-group">
     <h2>Nouvelle conversation </h2>
-    <mat-form-field appearance="fill" class="full-width">
-      <mat-label>thème</mat-label>
-      <input matInput placeholder="Titre du topic" [(ngModel)]="topicInput" (keyup.enter)="createNewDialog()" />
-    </mat-form-field>
-    <button mat-raised-button color="accent" [disabled]="!isConnected" (click)="createNewDialog()">
-      <mat-icon>add_comment</mat-icon> Créer
-    </button>
+    <div class="topic-input">
+      <mat-form-field class="full-width">
+        <mat-label>thème</mat-label>
+        <input matInput placeholder="Titre du topic" [(ngModel)]="topicInput" (keyup.enter)="createNewDialog()"
+          #inputField="ngModel" required />
+        <mat-error *ngIf="showError">Merci d'indiquer un titre</mat-error>
+      </mat-form-field>
+      <button mat-raised-button color="accent" [disabled]="!isConnected||!topicInput.trim()"
+        (click)="createNewDialog()">
+        <mat-icon>add_comment</mat-icon>Créer
+      </button>
+    </div>
   </div>
 </div>

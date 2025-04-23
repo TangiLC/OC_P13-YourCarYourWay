@@ -40,7 +40,7 @@ export class DialogHistoryComponent implements OnInit, OnDestroy {
   @Input() senderId!: number;
   @Output() dialogSelected = new EventEmitter<number>();
   @Output() dialogCreated = new EventEmitter<string>();
-
+  showError: boolean = false;
   topicInput = '';
   isConnected = false;
   dialogs: DialogDTO[] = [];
@@ -89,9 +89,13 @@ export class DialogHistoryComponent implements OnInit, OnDestroy {
   }
 
   createNewDialog(): void {
-    if (!this.topicInput.trim()) return;
+    if (!this.topicInput.trim()) {
+      this.showError = true;
+      return;
+    }
     this.dialogCreated.emit(this.topicInput.trim());
     this.topicInput = '';
+    this.showError = false;
   }
 
   getDialogTitle(topic: string | undefined | null): string {

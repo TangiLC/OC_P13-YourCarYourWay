@@ -60,5 +60,19 @@ export class HomeComponent implements OnInit {
 
   onDialogCreated(topic: string) {
     console.log('Un nouveau dialogue va être créé avec le topic:', topic);
+
+    this.websocketService.createDialog(topic);
+
+    const subscription = this.websocketService.subscribeToDialogCreated(
+      (dialogData) => {
+        console.log('Dialogue créé:', dialogData);
+
+        this.currentDialogId = dialogData.id;
+        this.currentDialogId &&
+          this.websocketService.joinDialog(this.currentDialogId);
+
+        subscription.unsubscribe();
+      }
+    );
   }
 }

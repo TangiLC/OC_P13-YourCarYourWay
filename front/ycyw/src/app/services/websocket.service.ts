@@ -21,6 +21,18 @@ export class WebsocketService {
     this.client.configure(myRxStompConfig);
   }
 
+  createDialog(topic: string) {
+    this.sendOrQueue('/app/chat.createDialog', topic || '');
+  }
+
+  joinDialog(dialogId: number) {
+    const payload = {
+      dialogId: dialogId,
+      content: 'A rejoint le dialogue'
+    };
+    this.sendOrQueue('/app/chat.addUser', JSON.stringify(payload));
+  }
+
   updateConnectionStatus(isConnected: boolean): void {
     this.connectionStatusSubject.next(isConnected);
   }
