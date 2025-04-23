@@ -87,7 +87,21 @@ export class DialogHistoryComponent implements OnInit, OnDestroy {
   }
 
   selectDialog(id: number): void {
-    this.dialogSelected.emit(id);
+    const currentUserId = this.userService.getCurrentUser()?.id;
+    currentUserId &&
+      this.dialogService.markDialogMessagesAsRead(id, currentUserId).subscribe({
+        next: () => {
+          this.dialogSelected.emit(id);
+          this.loadDialogs();
+        },
+        error: (err) => {
+          console.warn(
+            `Impossible de marquer les messages du dialogue ${id} comme lus`,
+            err
+          );
+          this.dialogSelected.emit(id);
+        },
+      });
   }
 
   createNewDialog(): void {
@@ -113,9 +127,9 @@ export class DialogHistoryComponent implements OnInit, OnDestroy {
   }
 
   getUnreadMessagesCount(dialog: DialogDTO): number {
-    console.log("DIALOG",dialog)
+    console.log('DIALOG', dialog);
     const currentUser = this.userService.getCurrentUser();
-    console.log("CURRENT-USER",currentUser)
+    console.log('CURRENT-USER', currentUser);
     if (!currentUser || !dialog.messages) {
       return 0;
     }

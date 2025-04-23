@@ -24,4 +24,14 @@ export class DialogService {
   onDialogRefresh(): Observable<void> {
     return this.dialogRefresh$.asObservable();
   }
+
+  markDialogMessagesAsRead(
+    dialogId: number,
+    senderId: number
+  ): Observable<void> {
+    return this.http.post<void>(
+      `/api/dialog/${dialogId}/${senderId}/markasread`,
+      {}
+    );
+  }
 }
