@@ -7,7 +7,7 @@
   <div class="dialog-section" *ngIf="(pendingDialogs$ | async)?.length||0> 0">
     <h3 class="status-pending">En attente</h3>
     <div *ngFor="let dialog of pendingDialogs$ | async" class="dialog-item status-pending">
-      <div class="dialog-select" (click)="selectDialog(dialog.id)">
+      <div class="dialog-select" (click)="selectDialog(dialog.id||0)">
         <div class="dialog-title">{{ getDialogTitle(dialog.topic) }}</div>
         <div class="dialog-info-container">
           <div class="dialog-date">{{ getDialogDate(dialog.topic) }}</div>
@@ -24,7 +24,7 @@
       Active{{ (openDialogs$ | async)?.length||0> 1 ? 's' : '' }}
     </h3>
     <div *ngFor="let dialog of openDialogs$ | async" class="dialog-item status-open">
-      <div class="dialog-select" (click)="selectDialog(dialog.id)">
+      <div class="dialog-select" (click)="selectDialog(dialog.id||0)">
         <div class="dialog-title">{{ getDialogTitle(dialog.topic) }}</div>
         <div class="dialog-info-container">
           <div class="dialog-date">{{ getDialogDate(dialog.topic) }}</div>
@@ -41,7 +41,7 @@
       Archivée{{ (closedDialogs$ | async)?.length||0> 1 ? 's' : '' }}
     </h3>
     <div *ngFor="let dialog of closedDialogs$ | async" class="dialog-item status-closed">
-      <div class="dialog-select" (click)="selectDialog(dialog.id)">
+      <div class="dialog-select" (click)="selectDialog(dialog.id||0)">
         <div class="dialog-title">{{ getDialogTitle(dialog.topic) }}</div>
         <div class="dialog-info-container">
           <div class="dialog-date">{{ getDialogDate(dialog.topic) }}</div>

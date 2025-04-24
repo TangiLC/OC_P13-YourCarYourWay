@@ -12,10 +12,18 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
-import { DialogDTO } from '../../dto';
+import { ChatMessageDTO, DialogDTO, UserProfileDTO } from '../../dto';
 import { DialogService } from '../../services/dialog.service';
-import { forkJoin, map, Observable, of, Subscription } from 'rxjs';
-import { IMessage } from '@stomp/rx-stomp';
+import {
+  forkJoin,
+  map,
+  Observable,
+  of,
+  Subscription,
+  interval,
+  BehaviorSubject,
+} from 'rxjs';
+
 import { WebsocketService } from '../../services/websocket.service';
 import {
   extractDialogDate,
@@ -44,12 +52,18 @@ export class DialogHistoryComponent implements OnInit, OnDestroy {
   showError: boolean = false;
   topicInput = '';
   isConnected = false;
-  dialogs$: Observable<DialogDTO[]> =of([]);
-  pendingDialogs$: Observable<DialogDTO[]>=of([]);
-  openDialogs$: Observable<DialogDTO[]>=of([]);
-  closedDialogs$: Observable<DialogDTO[]>=of([]);
+  pendingDialogs$: Observable<DialogDTO[]> = of([]);
+  openDialogs$: Observable<DialogDTO[]> = of([]);
+  closedDialogs$: Observable<DialogDTO[]> = of([]);
   private refreshSub: Subscription | null = null;
   private connectionSub: Subscription | null = null;
+  private wsDialogSub: Subscription | null = null;
+  private intervalSub: Subscription | null = null;
+  private userSubscription: Subscription | null = null;
+  private currentUser: UserProfileDTO | null = null;
+
+  private dialogsSubject = new BehaviorSubject<DialogDTO[]>([]);
+  dialogs$ = this.dialogsSubject.asObservable();
 
   constructor(
     private dialogService: DialogService,
@@ -62,10 +76,20 @@ export class DialogHistoryComponent implements OnInit, OnDestroy {
       console.warn('senderId manquant dans DialogHistoryComponent');
       return;
     }
-    this.loadDialogs();
-    this.pendingDialogs$ = this.getDialogsByStatus$('PENDING');
-    this.openDialogs$    = this.getDialogsByStatus$('OPEN');
-    this.closedDialogs$  = this.getDialogsByStatus$('CLOSED');
+    this.userSubscription = this.userService.user$.subscribe(user => {
+      this.currentUser = user;
+      this.loadDialogs();
+    });
+
+    this.pendingDialogs$ = this.dialogs$.pipe(
+      map((dialogs) => dialogs.filter((d) => d.status === 'PENDING'))
+    );
+    this.openDialogs$ = this.dialogs$.pipe(
+      map((dialogs) => dialogs.filter((d) => d.status === 'OPEN'))
+    );
+    this.closedDialogs$ = this.dialogs$.pipe(
+      map((dialogs) => dialogs.filter((d) => d.status === 'CLOSED'))
+    );
 
     this.refreshSub = this.dialogService.onDialogRefresh().subscribe(() => {
       this.loadDialogs();
@@ -75,44 +99,82 @@ export class DialogHistoryComponent implements OnInit, OnDestroy {
         this.isConnected = status;
       }
     );
+    this.wsDialogSub = this.websocketService.subscribeToDialog(
+      this.senderId,
+      (msg: ChatMessageDTO) => {
+        this.loadDialogs();
+      }
+    );
+    this.intervalSub = interval(2000).subscribe(() => {
+      this.loadDialogs();
+    });
   }
 
   ngOnDestroy(): void {
     this.refreshSub?.unsubscribe();
     this.connectionSub?.unsubscribe();
+    this.wsDialogSub?.unsubscribe();
+    this.intervalSub?.unsubscribe();
+    this.userSubscription?.unsubscribe();
   }
 
   loadDialogs(): void {
-    const user = this.userService.getCurrentUser();
-    console.log('&&&User');
-    const mine$ = this.dialogService.getDialogsBySender(user?.id || 0);
+    if (!this.currentUser) return;
+    const user=this.currentUser
+    const mine$ = this.dialogService.getDialogsBySender(user.id);
 
-    if (user?.type === 'SUPPORT') {
+    if (user.type === 'SUPPORT') {
       const pending$ = this.dialogService.getDialogsByStatus('PENDING');
-      this.dialogs$ = forkJoin([mine$, pending$]).pipe(
-        map(([mine, pending]) => [...mine, ...pending])
-      );
+      forkJoin([mine$, pending$])
+        .pipe(
+          map(([mine, pending]: [DialogDTO[], DialogDTO[]]) => {
+            const dialogMap: Map<number, DialogDTO> = new Map<
+              number,
+              DialogDTO
+            >();
+            mine.forEach((dialog: DialogDTO) =>
+              dialogMap.set(dialog.id, dialog)
+            );
+            pending.forEach((dialog: DialogDTO) => {
+              if (!dialogMap.has(dialog.id)) {
+                dialogMap.set(dialog.id, dialog);
+              }
+            });
+            return Array.from(dialogMap.values());
+          })
+        )
+        .subscribe((dialogs) => {
+          this.dialogsSubject.next(dialogs);
+        });
     } else {
-      this.dialogs$ = mine$;
+      mine$.subscribe((dialogs) => {
+        this.dialogsSubject.next(dialogs);
+      });
     }
   }
 
   selectDialog(id: number): void {
-    const currentUserId = this.userService.getCurrentUser()?.id;
-    currentUserId &&
-      this.dialogService.markDialogMessagesAsRead(id, currentUserId).subscribe({
-        next: () => {
-          this.dialogSelected.emit(id);
-          this.loadDialogs();
-        },
-        error: (err) => {
-          console.warn(
-            `Impossible de marquer les messages du dialogue ${id} comme lus`,
-            err
+    if (!this.currentUser) return;
+
+    this.dialogService.markDialogMessagesAsRead(id, this.currentUser.id).subscribe({
+      next: () => {
+        this.dialogService.getDialogById(id).subscribe((updatedDialog) => {
+          const currentDialogs = this.dialogsSubject.getValue();
+          const updatedDialogs = currentDialogs.map((dialog) =>
+            dialog.id === id ? updatedDialog : dialog
           );
+          this.dialogsSubject.next(updatedDialogs);
           this.dialogSelected.emit(id);
-        },
-      });
+        });
+      },
+      error: (err) => {
+        console.warn(
+          `Impossible de marquer les messages du dialogue ${id} comme lus`,
+          err
+        );
+        this.dialogSelected.emit(id);
+      },
+    });
   }
 
   createNewDialog(): void {
@@ -133,19 +195,12 @@ export class DialogHistoryComponent implements OnInit, OnDestroy {
     return extractDialogDate(topic);
   }
 
-  private getDialogsByStatus$(status: string): Observable<DialogDTO[]> {
-    return this.dialogs$.pipe(
-      map(dialogs => dialogs.filter(d => d.status === status))
-    );
-  }
-
   getUnreadMessagesCount(dialog: DialogDTO): number {
-    const currentUser = this.userService.getCurrentUser();
-    if (!currentUser || !dialog.messages) {
+    if (!this.currentUser || !dialog.messages) {
       return 0;
     }
     return dialog.messages.filter(
-      (msg) => !msg.isRead && msg.sender !== currentUser.id.toString()
+      (msg) => !msg.isRead && msg.sender !== this.currentUser!.id.toString()
     ).length;
   }
 }

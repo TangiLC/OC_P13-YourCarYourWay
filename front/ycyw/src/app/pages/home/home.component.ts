@@ -30,7 +30,7 @@ import { UserProfileDTO } from '../../dto';
   styleUrls: ['./home.component.scss'],
 })
 export class HomeComponent implements OnInit {
-  title = 'Accueil';
+  title = 'YourCarYourWay';
 
   user: UserProfileDTO | null = null;
   currentDialogId: number | null = null;
@@ -56,13 +56,12 @@ export class HomeComponent implements OnInit {
 
   onDialogSelected(dialogId: number) {
     this.currentDialogId = dialogId;
+    this.currentDialogId &&
+    this.websocketService.joinDialog(this.currentDialogId);
   }
 
   onDialogCreated(topic: string) {
-    console.log('new dialog topic:', topic);
-
     this.websocketService.createDialog(topic);
-
     const subscription = this.websocketService.subscribeToDialogCreated(
       (dialogData) => {
         console.log('Dialogue created:', dialogData);

@@ -37,7 +37,8 @@
         <div class="message-container" [ngClass]="getMessageCssClass(msg)">
           <span class="message-content">
             <ng-container *ngIf="msg.type === 'CHAT'">
-              {{ getSenderName(msg.sender) }}: {{ msg.content }}
+              <b>{{ getSenderName(msg.sender) }}</b>
+              <small>({{ formatMessageTimestamp(msg.timestamp)}})</small>: {{ msg.content }}
             </ng-container>
             <ng-container *ngIf="msg.type !== 'CHAT'">
               {{ formatMessage(msg) }}
