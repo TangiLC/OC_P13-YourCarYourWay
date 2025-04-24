@@ -8,6 +8,8 @@ npm-debug.log*
 
 # Env
 .env
+environments/environment.ts
+environments/environment.prod.ts
 
 # IDEs
 .vscode/

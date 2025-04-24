@@ -27,7 +27,8 @@ CREATE TABLE dialogs (
     topic VARCHAR(255),
     status ENUM('OPEN', 'PENDING', 'CLOSED') NOT NULL,
     created_at DATETIME NOT NULL,
-    closed_at DATETIME
+    closed_at DATETIME,
+    last_activity_at DATETIME NOT NULL
 );
 
 -- Table messages

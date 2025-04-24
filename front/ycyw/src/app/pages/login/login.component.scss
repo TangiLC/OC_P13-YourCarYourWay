@@ -1,0 +1,32 @@
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: #eeeeec;
+}
+
+mat-card {
+  width: 400px;
+  background: #999999;
+}
+
+mat-card-title {
+  padding: 16px;
+  margin: auto;
+}
+
+.center {
+  width: 100%;
+  margin: auto;
+}
+
+.mat-mdc-raised-button {
+  background-color: #303030;
+  width: 50%;
+  margin: auto 25%;
+}
+
+.full-width {
+  width: 100%;
+}

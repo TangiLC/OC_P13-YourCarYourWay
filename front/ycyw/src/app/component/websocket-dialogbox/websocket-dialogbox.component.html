@@ -1,0 +1,60 @@
+<div class="dialog-box">
+
+  <div class="dialog-header">
+    <div *ngIf="currentDialog" class="dialog-info">
+      <h2>{{ dialogTitle }}</h2>
+      <p *ngIf="dialogDate">Créé le : {{ dialogDate }}</p>
+
+      <button mat-raised-button color="warn" *ngIf="isConnected" (click)="disconnectFromDialog()"
+        class="disconnect-button">
+        <mat-icon>exit_to_app</mat-icon>
+        <span>Quitter</span>
+      </button>
+    </div>
+
+    <div *ngIf="!currentDialog && isConnected" class="no-dialog">
+      <p>Pas de conversation en cours. Veuillez sélectionner ou créer une conversation.</p>
+    </div>
+  </div>
+
+  <div *ngIf="!isConnected" class="connection-status">
+    <mat-icon color="warn">cloud_off</mat-icon>
+    <span>Connexion en cours...</span>
+  </div>
+
+  <div *ngIf="connectionError" class="error-message">
+    <mat-icon color="warn">error</mat-icon>
+    <span>{{ connectionError }}</span>
+  </div>
+
+  <div *ngIf="isDialogLoading" class="spinner-container">
+    <mat-spinner diameter="30"></mat-spinner>
+  </div>
+
+  <div *ngIf="currentDialog && !isDialogLoading">
+    <mat-list>
+      <div *ngFor="let msg of messages" class="message-wrapper">
+        <div class="message-container" [ngClass]="getMessageCssClass(msg)">
+          <span class="message-content">
+            <ng-container *ngIf="msg.type === 'CHAT'">
+              <b>{{ getSenderName(msg.sender) }}</b>
+              <small>({{ formatMessageTimestamp(msg.timestamp)}})</small>: {{ msg.content }}
+            </ng-container>
+            <ng-container *ngIf="msg.type !== 'CHAT'">
+              {{ formatMessage(msg) }}
+            </ng-container>
+          </span>
+        </div>
+      </div>
+    </mat-list>
+
+    <div class="input-group">
+      <input matInput placeholder="Entrez un message..." [(ngModel)]="newMessage" (keyup.enter)="sendMessage()"
+        [disabled]="!isConnected || !dialogId" />
+      <button mat-icon-button color="primary" (click)="sendMessage()" aria-label="Envoyer"
+        [disabled]="!isConnected || !dialogId">
+        <mat-icon>send</mat-icon>
+      </button>
+    </div>
+  </div>
+</div>

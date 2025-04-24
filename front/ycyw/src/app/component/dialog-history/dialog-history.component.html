@@ -1,0 +1,71 @@
+<div class="history-container">
+  <h2>Vos dernières conversations</h2>
+  <div *ngIf="(dialogs$ | async)?.length === 0">
+    <p>Aucun dialogue trouvé.</p>
+  </div>
+
+  <div class="dialog-section" *ngIf="(pendingDialogs$ | async)?.length||0> 0">
+    <h3 class="status-pending">En attente</h3>
+    <div *ngFor="let dialog of pendingDialogs$ | async" class="dialog-item status-pending">
+      <div class="dialog-select" (click)="selectDialog(dialog.id||0)">
+        <div class="dialog-title">{{ getDialogTitle(dialog.topic) }}</div>
+        <div class="dialog-info-container">
+          <div class="dialog-date">{{ getDialogDate(dialog.topic) }}</div>
+          <div class="unread-count" *ngIf="getUnreadMessagesCount(dialog) > 0">
+            {{ getUnreadMessagesCount(dialog) }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dialog-section" *ngIf="(openDialogs$ | async)?.length||0> 0">
+    <h3 class="status-open">
+      Active{{ (openDialogs$ | async)?.length||0> 1 ? 's' : '' }}
+    </h3>
+    <div *ngFor="let dialog of openDialogs$ | async" class="dialog-item status-open">
+      <div class="dialog-select" (click)="selectDialog(dialog.id||0)">
+        <div class="dialog-title">{{ getDialogTitle(dialog.topic) }}</div>
+        <div class="dialog-info-container">
+          <div class="dialog-date">{{ getDialogDate(dialog.topic) }}</div>
+          <div class="unread-count" *ngIf="getUnreadMessagesCount(dialog) > 0">
+            {{ getUnreadMessagesCount(dialog) }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dialog-section" *ngIf="(closedDialogs$ | async)?.length||0> 0">
+    <h3 class="status-closed">
+      Archivée{{ (closedDialogs$ | async)?.length||0> 1 ? 's' : '' }}
+    </h3>
+    <div *ngFor="let dialog of closedDialogs$ | async" class="dialog-item status-closed">
+      <div class="dialog-select" (click)="selectDialog(dialog.id||0)">
+        <div class="dialog-title">{{ getDialogTitle(dialog.topic) }}</div>
+        <div class="dialog-info-container">
+          <div class="dialog-date">{{ getDialogDate(dialog.topic) }}</div>
+          <div class="unread-count" *ngIf="getUnreadMessagesCount(dialog) > 0">
+            {{ getUnreadMessagesCount(dialog) }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="topic-group">
+    <h2>Nouvelle conversation </h2>
+    <div class="topic-input">
+      <mat-form-field class="full-width">
+        <mat-label>thème</mat-label>
+        <input matInput placeholder="Titre du topic" [(ngModel)]="topicInput" (keyup.enter)="createNewDialog()"
+          #inputField="ngModel" required />
+        <mat-error *ngIf="showError">Merci d'indiquer un titre</mat-error>
+      </mat-form-field>
+      <button mat-raised-button color="accent" [disabled]="!isConnected||!topicInput.trim()"
+        (click)="createNewDialog()">
+        <mat-icon>add_comment</mat-icon>Créer
+      </button>
+    </div>
+  </div>
+</div>

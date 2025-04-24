@@ -1,19 +1,17 @@
 package com.ycyw.poc_chat.security;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Date;
-
-import javax.crypto.SecretKey;
-
-import org.springframework.stereotype.Component;
-
 import com.ycyw.poc_chat.model.Role;
-
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.Date;
+import javax.crypto.SecretKey;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.stereotype.Component;
 
 /**
  * Génère et valide les JSON Web Tokens (JWT)
@@ -32,7 +30,6 @@ public class JwtTokenProvider {
       "${jwt.expiration-ms}"
     ) long jwtExpirationMs
   ) {
-    // Crée une clé HMAC à partir de la chaîne de caractères
     this.secretKey =
       Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     this.jwtExpirationMs = jwtExpirationMs;
@@ -46,7 +43,7 @@ public class JwtTokenProvider {
    * @param role rôle de l'utilisateur (USER, AGENT, ADMIN)
    * @return le token JWT signé
    */
-  public String generateToken(Long userId, Role role) {
+  public String generateToken(Long userId, String email, Role role) {
     Date now = new Date();
     Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
 
@@ -54,6 +51,7 @@ public class JwtTokenProvider {
       .builder()
       .setSubject(userId.toString())
       .claim("role", role)
+      .claim("email", email)
       .setIssuedAt(now)
       .setExpiration(expiryDate)
       .signWith(secretKey, SignatureAlgorithm.HS512)
@@ -93,6 +91,22 @@ public class JwtTokenProvider {
   }
 
   /**
+   * Récupère l'email depuis le token JWT.
+   *
+   * @param token le JWT
+   * @return email de l'utilisateur
+   */
+  public String getEmailFromToken(String token) {
+    Claims claims = Jwts
+      .parserBuilder()
+      .setSigningKey(secretKey)
+      .build()
+      .parseClaimsJws(token)
+      .getBody();
+    return claims.get("email", String.class);
+  }
+
+  /**
    * Valide la structure, la signature et l'expiration d'un token JWT.
    *
    * @param token le JWT
@@ -107,8 +121,20 @@ public class JwtTokenProvider {
         .parseClaimsJws(token);
       return true;
     } catch (JwtException | IllegalArgumentException ex) {
-      // Ici on peut logger la raison de l'échec : ex.getMessage()
       return false;
     }
+  }
+
+  public UserPrincipal getUserPrincipal(String token) {
+    Long userId = getUserIdFromToken(token);
+    String email = getEmailFromToken(token); 
+    String role = getRoleFromToken(token);
+
+    return new UserPrincipal(
+      userId,
+      email,
+      null, 
+      Collections.singleton(new SimpleGrantedAuthority("ROLE_" + role))
+    );
   }
 }
