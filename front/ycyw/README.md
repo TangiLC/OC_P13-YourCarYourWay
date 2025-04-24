@@ -1,59 +1,85 @@
-# Ycyw
+# YourCarYourWay Front-end
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.1.5.
+![Angular](https://img.shields.io/badge/Angular-19.x-DD0031?style=&logo=angular&logoColor=white) ![TypeScript](https://img.shields.io/badge/TypeScript-5.7-%23007ACC?style=&logo=typescript&logoColor=white) ![Angular Material](https://img.shields.io/badge/Material-19.x-007FCC?style=&logo=angular&logoColor=white) ![RxJS](https://img.shields.io/badge/RxJS-7.8-B7178C?style=&logo=rxjs&logoColor=white) ![STOMP](https://img.shields.io/badge/STOMP-7.1.1-%231DBF73?style=&logo=websocket&logoColor=white) ![Docker](https://img.shields.io/badge/Docker-20.10-%230249ED?style=&logo=docker&logoColor=white)
 
-## Development server
+## 📖 Description
 
-To start a local development server, run:
+Ce projet est un **ProofOfConcept** d'application front-end Angular de la plateforme **YourCarYourWay** pour le projet 13 du **cursus Full-Stack Java Angular d'OpenClassrooms**.  
+Il fournit une interface utilisateur pour :
+- la connexion utilisateurs,
+- la navigation des dialogues de chat,
+- l'envoi et la réception de messages en temps réel via WebSocket (STOMP)  
+Il consomme l'API REST sécurisée (JWT) et les endpoints STOMP exposés par le backend.
 
-```bash
-ng serve
-```
+## 🛠️ Technologies principales
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+- Framework : **Angular 19**
+- Langage : **TypeScript**
+- UI Kit : **Angular Material**
+- Reactive Extensions : **RxJS**
+- WebSocket : **@stomp/stompjs**, **@stomp/rx-stomp**, **sockjs-client**
+- Build & CLI : **Angular CLI**
+- Containerisation : **Docker** (optionnel)
 
-## Code scaffolding
+## 📋 Prérequis
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+- Node.js >= 18.x  
+- npm >= 9.x  
+- (Optionnel) Docker & Docker Compose  
 
-```bash
-ng generate component component-name
-```
+## 🚀 Installation
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+1. Copier le dépôt et accéder au dossier front :
+   ```bash
+   git clone <URL_DU_REPO>
+   cd <nom_du_repo>/front/ycyw
+   ```
 
-```bash
-ng generate --help
-```
+2. Installer les dépendances :
+   ```bash
+   npm install
+   ```
 
-## Building
+3. Configurer l'URL de l'API et du WebSocket  
+   Dans `src/environments/environment.ts` (et `environment.prod.ts`), ajustez :
+   ```ts
+   export const environment = {
+     production: false,
+     apiUrl: 'http://localhost:8080/api',
+     wsUrl: 'ws://localhost:8080/ws-chat'
+   };
+   ```
 
-To build the project run:
+## 📦 Scripts disponibles
 
-```bash
-ng build
-```
+| Script         | Description                             |
+| -------------- | --------------------------------------- |
+| `npm start`    | Lance l'application en mode développement (http://localhost:4200) |
+| `npm run build`| Compile le projet pour la production (dans `dist/`)    |
+| `npm run watch`| Reconstruit à chaque changement (développement) |
+| `npm test`     | Lance les tests unitaires avec Karma/Jasmine |
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+## 🔧 Développement
 
-## Running unit tests
+- Le projet utilise **Angular CLI** pour la création de composants, services, modules, etc.  
+- UI basée sur **Angular Material** : thèmes, layouts, composants préfabriqués.  
+- Communication WebSocket :  
+  - Service `StompService` encapsule la connexion STOMP/SockJS.  
+  - Souscriptions aux topics `/topic/dialog/{dialogId}` et publication sur `/app/dialog/{dialogId}/message`.
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+## 📚 Ressources & liens
 
-```bash
-ng test
-```
+- [Angular Documentation](https://angular.io/docs)  
+- [Angular Material](https://material.angular.io/)  
+- [RxJS](https://rxjs.dev/)  
+- [STOMP.js Guide](https://stomp-js.github.io/)  
 
-## Running end-to-end tests
+## 🤝 Contribution
 
-For end-to-end (e2e) testing, run:
+Contributions, issues et PR sont les bienvenus !  
 
-```bash
-ng e2e
-```
+---
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+## 📄 Licence
 
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Ce projet est distribué sous licence MIT.
