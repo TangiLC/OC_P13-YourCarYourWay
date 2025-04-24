@@ -1,7 +1,6 @@
 -- Création de la base
 CREATE DATABASE IF NOT EXISTS YCYW DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE YCYW;
-
 -- Table user_credentials
 CREATE TABLE user_credentials (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -9,7 +8,6 @@ CREATE TABLE user_credentials (
     password VARCHAR(255) NOT NULL,
     role ENUM('USER', 'AGENT', 'ADMIN') NOT NULL
 );
-
 -- Table user_profiles
 CREATE TABLE user_profiles (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -20,7 +18,6 @@ CREATE TABLE user_profiles (
     type ENUM('INDIVIDUAL', 'COMPANY', 'SUPPORT', 'AGENCY') DEFAULT NULL,
     FOREIGN KEY (user_id) REFERENCES user_credentials(id) ON DELETE CASCADE
 );
-
 -- Table dialogs
 CREATE TABLE dialogs (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -30,7 +27,6 @@ CREATE TABLE dialogs (
     closed_at DATETIME,
     last_activity_at DATETIME NOT NULL
 );
-
 -- Table messages
 CREATE TABLE messages (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -39,10 +35,10 @@ CREATE TABLE messages (
     is_read BOOLEAN NOT NULL DEFAULT FALSE,
     content TEXT NOT NULL,
     sender_id BIGINT NOT NULL,
+    type ENUM('CHAT','INFO','SYSTEM') NOT NULL DEFAULT CHAT,
     FOREIGN KEY (dialog_id) REFERENCES dialogs(id) ON DELETE CASCADE,
     FOREIGN KEY (sender_id) REFERENCES user_profiles(id) ON DELETE CASCADE
 );
-
 -- Table rel_user_dialog
 CREATE TABLE rel_user_dialog (
     dialog_id BIGINT NOT NULL,

@@ -7,8 +7,8 @@ INSERT INTO user_credentials (id, email, password, role) VALUES
 
 -- Ajout dans user_profiles
 INSERT INTO user_profiles (id, user_id, first_name, last_name, company, type) VALUES
-(1, 1, 'Sabrina', 'Upport', 'YCYW', 'SUPPORT'),
-(2, 2, 'Tom', 'Est-User', '', 'INDIVIDUAL');
+(1, 1, 'Sabrina', 'Yucayowich', 'YCYW', 'SUPPORT'),
+(2, 2, 'Tom', 'Person', '', 'INDIVIDUAL');
 
 -- Ajout dans dialogs
 INSERT INTO dialogs (id, topic, status, created_at, closed_at) VALUES
