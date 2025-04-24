@@ -1,5 +1,4 @@
 version: '3.8'
-
 services:
 
   mysql:
@@ -7,11 +6,11 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE:   ${MYSQL_DATABASE}
+      MYSQL_USER:       ${MYSQL_USER}
+      MYSQL_PASSWORD:   ${MYSQL_PASSWORD}
     volumes:
-      - ./mysql/init:/docker-entrypoint-initdb.d
+      - ./bdd:/docker-entrypoint-initdb.d:ro
     ports:
       - "3306:3306"
     networks:
@@ -26,7 +25,40 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
-      - "15674:15674"
+    networks:
+      - app-net
+
+  backend:
+    build:
+      context: ./back/poc_chat
+      dockerfile: Dockerfile
+    depends_on:
+      - mysql
+      - rabbitmq
+    environment:
+      SPRING_DATASOURCE_URL:      jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?useSSL=false&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+      SPRING_RABBITMQ_USERNAME:   ${RABBITMQ_DEFAULT_USER}
+      SPRING_RABBITMQ_PASSWORD:   ${RABBITMQ_DEFAULT_PASS}
+      JWT_SECRET:                ${JWT_SECRET}
+      JWT_EXPIRATION_MS:         ${JWT_EXPIRATION_MS}
+    ports:
+      - "8080:8080"
+    networks:
+      - app-net
+
+  front:
+    build:
+      context: ./front/ycyw
+      dockerfile: Dockerfile
+    depends_on:
+      - backend
+    environment:
+      API_URL: http://backend:8080/api
+      WS_URL:  ws://backend:8080/ws-chat
+    ports:
+      - "4200:4200"
     networks:
       - app-net
 
