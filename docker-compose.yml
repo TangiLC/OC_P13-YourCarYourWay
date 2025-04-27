@@ -44,7 +44,7 @@ services:
       JWT_SECRET:                ${JWT_SECRET}
       JWT_EXPIRATION_MS:         ${JWT_EXPIRATION_MS}
     ports:
-      - "8081:8080"
+      - "8080:8080"
     networks:
       - app-net
 
@@ -55,8 +55,8 @@ services:
     depends_on:
       - backend
     environment:
-      API_URL: http://backend:8080/api
-      WS_URL:  ws://backend:8080/ws-chat
+      API_URL: http://localhost:8080/api
+      WS_URL:  ws://localhost:8080/ws-chat
     ports:
       - "4200:4200"
     networks:

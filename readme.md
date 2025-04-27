@@ -64,10 +64,10 @@ cd <nom_du_repo>
    ```sql
    CREATE DATABASE YCYW;
    ```
-2. Importez les scripts depuis `backend/bdd/` :
+2. Importez les scripts depuis `bdd/` :
    ```bash
-   mysql -u root -p YCYW < backend/bdd/script.sql
-   mysql -u root -p YCYW < backend/bdd/test_populate.sql
+   mysql -u root -p YCYW < bdd/script.sql
+   mysql -u root -p YCYW < bdd/test_populate.sql
    ```
 
 #### 1.2 Configuration des secrets
@@ -139,8 +139,8 @@ Créez un fichier `.env` contenant les variables d'environnement nécessaires :
 # MySQL
 MYSQL_ROOT_PASSWORD=rootpassword
 MYSQL_DATABASE=YCYW
-MYSQL_USER=ycyw_user
-MYSQL_PASSWORD=ycyw_password
+MYSQL_USER=<mysql_user>
+MYSQL_PASSWORD=<mysql_password>
 
 # RabbitMQ
 RABBITMQ_DEFAULT_USER=guest
@@ -168,13 +168,11 @@ Cette commande va :
 2. Créer et configurer les conteneurs MySQL et RabbitMQ
 3. Lancer tous les services en mode détaché
 
-> **Note :** La première exécution peut prendre plusieurs minutes car Docker doit télécharger toutes les images de base et construire vos applications.
-
 ### 3. Accès aux services
 
 Une fois les conteneurs démarrés, vous pouvez accéder aux services :
 
-- **Frontend** : http://localhost:4200
+- **Frontend** : http://localhost:4201
 - **Backend API** : http://localhost:8081/api
 - **Swagger UI** : http://localhost:8081/swagger-ui/index.html
 - **RabbitMQ Admin** : http://localhost:15672 (utilisateur/mot de passe : guest/guest)
@@ -212,51 +210,14 @@ docker-compose up --build -d
 
 ---
 
-## 🚀 Endpoints Clés (Backend)
+## Infos complémentaires
 
-**Auth**  
-- `POST /auth/register`  
-- `POST /auth/login`  
-
-**Profils**  
-- `GET /api/profile/me`  
-- `GET /api/profile/{userId}`  
-- `PUT /api/profile/{userId}`  
-
-**Dialogues & Messages**  
-- `POST /api/dialog/`  
-- `GET /api/dialog/{id}`  
-- `POST /api/dialog/{dialogId}/message`  
-- `POST /api/dialog/{dialogId}/{senderId}/markasread`  
-- `POST /api/dialog/{dialogId}/invite/{userId}`  
-- `POST /api/dialog/{dialogId}/close`  
-- `GET /api/dialog/all`  
-- `GET /api/dialog/status/{status}`  
-- `GET /api/dialog/sender/{senderId}`  
-
----
-
-## 📦 Scripts (Front-end)
-
-| Script         | Description                                       |
-| -------------- | ------------------------------------------------- |
-| `npm start`    | Dev server (http://localhost:4200)                |
-| `npm run build`| Build production (dist/)                          |
-| `npm run watch`| Watch & rebuild                                  |
-| `npm test`     | Tests unitaires (Karma/Jasmine)                   |
-
----
-
-## 🗂️ Architecture
-
-- **Backend** : Spring Boot, JPA, RabbitMQ, WebSocket STOMP, Swagger.
-- **Front-end** : Angular 19, Material, RxJS, STOMP/SockJS.
-
+Des fichiers readme complémentaires sont disponibles dans `/back` et `front` pour plus de documentation.
 ---
 
 ## 🔍 Dépannage Docker
 
-- **Problème de ports** : Si vous avez des erreurs indiquant que les ports sont déjà utilisés, assurez-vous qu'aucune application n'utilise les ports 8081, 4200, 3307 (MySQL modifié) et 5672/15672 (RabbitMQ).
+- **Problème de ports** : Si vous avez des erreurs indiquant que les ports sont déjà utilisés, assurez-vous qu'aucune application n'utilise les ports 8081, 4201, 3307 (MySQL modifié) et 5672/15672 (RabbitMQ).
 
 - **Base de données non initialisée** : Si la base de données ne semble pas initialisée, vérifiez les logs du conteneur MySQL avec `docker-compose logs mysql`.
 
